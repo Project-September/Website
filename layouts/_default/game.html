@@ -1,0 +1,145 @@
+{{ define "main" }}
+<div class="game-detail-container">
+	<!-- Game Header Section -->
+	<section class="game-header">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-8">
+					<h1 class="game-title">{{ .Site.Params.game.title }}</h1>
+					<p class="game-tagline">{{ .Site.Params.game.tagline }}</p>
+					<div class="game-meta">
+						<span class="genre"><strong>ジャンル:</strong> {{ .Params.genre }}</span>
+						<span class="release-date"><strong>発売日:</strong> {{ .Params.releaseDate }}</span>
+						<span class="price"><strong>価格:</strong> ¥{{ .Params.price }}</span>
+					</div>
+					<div class="game-actions">
+						<a href="{{ .Site.Params.game.downloadUrl }}" class="btn btn-primary btn-lg"> <i class="icon-download"></i> ダウンロード </a>
+						<a href="{{ .Site.Params.game.purchaseUrl }}" class="btn btn-secondary btn-lg"> <i class="icon-cart"></i> 購入 </a>
+					</div>
+				</div>
+				<div class="col-md-4">
+					<div class="game-hero-image">
+						<img src="{{ .Site.Params.game.heroImage }}" alt="{{ .Site.Params.game.title }}" class="img-fluid" />
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Game Description Section -->
+	<section class="game-description">
+		<div class="container">
+			<div class="row">
+				<div class="col-12">
+					<div class="content">{{ .Content }}</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- System Requirements Section -->
+	<section class="system-requirements">
+		<div class="container">
+			<h2>システム要件</h2>
+			<div class="row">
+				<div class="col-md-6">
+					<div class="requirements-card">
+						<h3>最小要件</h3>
+						<ul class="requirements-list">
+							{{ with .Params.systemRequirements.minimum }}
+							<li><strong>OS:</strong> {{ .os }}</li>
+							<li><strong>プロセッサー:</strong> {{ .processor }}</li>
+							<li><strong>メモリ:</strong> {{ .memory }}</li>
+							<li><strong>グラフィック:</strong> {{ .graphics }}</li>
+							{{ with .directx }}
+							<li><strong>DirectX:</strong> {{ . }}</li>
+							{{ end }}
+							<li><strong>ストレージ:</strong> {{ .storage }}</li>
+							{{ with .soundCard }}
+							<li><strong>サウンドカード:</strong> {{ . }}</li>
+							{{ end }} {{ end }}
+						</ul>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="requirements-card">
+						<h3>推奨要件</h3>
+						<ul class="requirements-list">
+							{{ with .Params.systemRequirements.recommended }}
+							<li><strong>OS:</strong> {{ .os }}</li>
+							<li><strong>プロセッサー:</strong> {{ .processor }}</li>
+							<li><strong>メモリ:</strong> {{ .memory }}</li>
+							<li><strong>グラフィック:</strong> {{ .graphics }}</li>
+							{{ with .directx }}
+							<li><strong>DirectX:</strong> {{ . }}</li>
+							{{ end }}
+							<li><strong>ストレージ:</strong> {{ .storage }}</li>
+							{{ with .soundCard }}
+							<li><strong>サウンドカード:</strong> {{ . }}</li>
+							{{ end }} {{ end }}
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Screenshots Gallery Section -->
+	<section class="screenshots-gallery">
+		<div class="container">
+			<h2>スクリーンショット</h2>
+			<div class="screenshots-grid" id="screenshots-grid">
+				{{ range .Site.Params.game.screenshots }}
+				<div class="screenshot-item">
+					<img src="{{ .url }}" alt="{{ .alt }}" class="screenshot-image lazy-load" data-src="{{ .url }}" data-caption="{{ .caption }}" loading="lazy" />
+					<div class="screenshot-overlay">
+						<span class="screenshot-caption">{{ .caption }}</span>
+					</div>
+				</div>
+				{{ end }}
+			</div>
+		</div>
+	</section>
+
+	<!-- Videos Section -->
+	<section class="videos-section">
+		<div class="container">
+			<h2>動画</h2>
+			<div class="videos-grid">
+				{{ range .Site.Params.game.videos }}
+				<div class="video-item">
+					<div class="video-thumbnail" data-video-id="{{ .url }}" data-video-type="{{ .type }}">
+						<img src="{{ .thumbnail }}" alt="{{ .title }}" class="img-fluid" />
+						<div class="play-button">
+							<i class="icon-play"></i>
+						</div>
+					</div>
+					<h4 class="video-title">{{ .title }}</h4>
+				</div>
+				{{ end }}
+			</div>
+		</div>
+	</section>
+</div>
+
+<!-- Lightbox Modal -->
+<div id="lightbox-modal" class="lightbox-modal">
+	<div class="lightbox-content">
+		<span class="lightbox-close">&times;</span>
+		<img id="lightbox-image" src="" alt="" />
+		<div class="lightbox-caption" id="lightbox-caption"></div>
+		<div class="lightbox-nav">
+			<button id="lightbox-prev" class="lightbox-nav-btn">&lt;</button>
+			<button id="lightbox-next" class="lightbox-nav-btn">&gt;</button>
+		</div>
+	</div>
+</div>
+
+<!-- Video Modal -->
+<div id="video-modal" class="video-modal">
+	<div class="video-modal-content">
+		<span class="video-modal-close">&times;</span>
+		<div id="video-player-container"></div>
+	</div>
+</div>
+{{ end }}

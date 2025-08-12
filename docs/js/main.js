@@ -10,8 +10,14 @@ document.addEventListener("DOMContentLoaded", function () {
 	// Image lazy loading
 	initLazyLoading();
 
+	// Enhanced lazy loading for game detail page
+	initEnhancedLazyLoading();
+
 	// Screenshot lightbox functionality
 	initScreenshotLightbox();
+
+	// Video player functionality
+	initVideoPlayer();
 });
 
 // Mobile menu functionality
@@ -110,32 +116,15 @@ function handleImageError(img) {
 // Screenshot lightbox functionality
 function initScreenshotLightbox() {
 	const screenshotItems = document.querySelectorAll(".screenshot-item");
+	const lightboxModal = document.getElementById("lightbox-modal");
 
-	if (screenshotItems.length === 0) return;
+	if (screenshotItems.length === 0 || !lightboxModal) return;
 
-	// Create lightbox HTML
-	const lightboxHTML = `
-		<div id="screenshot-lightbox" class="lightbox" style="display: none;">
-			<div class="lightbox-overlay"></div>
-			<div class="lightbox-content">
-				<button class="lightbox-close" aria-label="閉じる">&times;</button>
-				<img class="lightbox-image" src="" alt="">
-				<div class="lightbox-caption"></div>
-				<button class="lightbox-prev" aria-label="前の画像">&#8249;</button>
-				<button class="lightbox-next" aria-label="次の画像">&#8250;</button>
-			</div>
-		</div>
-	`;
-
-	document.body.insertAdjacentHTML("beforeend", lightboxHTML);
-
-	const lightbox = document.getElementById("screenshot-lightbox");
-	const lightboxImage = lightbox.querySelector(".lightbox-image");
-	const lightboxCaption = lightbox.querySelector(".lightbox-caption");
-	const closeBtn = lightbox.querySelector(".lightbox-close");
-	const prevBtn = lightbox.querySelector(".lightbox-prev");
-	const nextBtn = lightbox.querySelector(".lightbox-next");
-	const overlay = lightbox.querySelector(".lightbox-overlay");
+	const lightboxImage = document.getElementById("lightbox-image");
+	const lightboxCaption = document.getElementById("lightbox-caption");
+	const closeBtn = lightboxModal.querySelector(".lightbox-close");
+	const prevBtn = document.getElementById("lightbox-prev");
+	const nextBtn = document.getElementById("lightbox-next");
 
 	let currentIndex = 0;
 	const screenshots = Array.from(screenshotItems);
@@ -145,23 +134,28 @@ function initScreenshotLightbox() {
 		currentIndex = index;
 		const screenshot = screenshots[index];
 		const img = screenshot.querySelector(".screenshot-image");
-		const caption = screenshot.querySelector(".screenshot-caption");
+		const captionText = img.getAttribute("data-caption") || img.alt;
 
-		lightboxImage.src = img.src;
+		lightboxImage.src = img.src || img.getAttribute("data-src");
 		lightboxImage.alt = img.alt;
-		lightboxCaption.textContent = caption ? caption.textContent : "";
+		lightboxCaption.textContent = captionText;
 
-		lightbox.style.display = "flex";
+		lightboxModal.classList.add("active");
 		document.body.style.overflow = "hidden";
 
-		// Update navigation buttons
-		prevBtn.style.display = screenshots.length > 1 ? "block" : "none";
-		nextBtn.style.display = screenshots.length > 1 ? "block" : "none";
+		// Update navigation buttons visibility
+		if (screenshots.length <= 1) {
+			prevBtn.style.display = "none";
+			nextBtn.style.display = "none";
+		} else {
+			prevBtn.style.display = "block";
+			nextBtn.style.display = "block";
+		}
 	}
 
 	// Close lightbox
 	function closeLightbox() {
-		lightbox.style.display = "none";
+		lightboxModal.classList.remove("active");
 		document.body.style.overflow = "";
 	}
 
@@ -181,30 +175,187 @@ function initScreenshotLightbox() {
 	screenshotItems.forEach((item, index) => {
 		item.addEventListener("click", () => openLightbox(index));
 		item.style.cursor = "pointer";
+
+		// Add keyboard support for screenshot items
+		item.setAttribute("tabindex", "0");
+		item.setAttribute("role", "button");
+		item.setAttribute("aria-label", `スクリーンショット ${index + 1} を拡大表示`);
+
+		item.addEventListener("keydown", (e) => {
+			if (e.key === "Enter" || e.key === " ") {
+				e.preventDefault();
+				openLightbox(index);
+			}
+		});
 	});
 
 	// Add event listeners
-	closeBtn.addEventListener("click", closeLightbox);
-	overlay.addEventListener("click", closeLightbox);
-	prevBtn.addEventListener("click", prevImage);
-	nextBtn.addEventListener("click", nextImage);
+	if (closeBtn) {
+		closeBtn.addEventListener("click", closeLightbox);
+	}
+
+	if (prevBtn) {
+		prevBtn.addEventListener("click", prevImage);
+	}
+
+	if (nextBtn) {
+		nextBtn.addEventListener("click", nextImage);
+	}
+
+	// Close lightbox when clicking outside the image
+	lightboxModal.addEventListener("click", (e) => {
+		if (e.target === lightboxModal) {
+			closeLightbox();
+		}
+	});
 
 	// Keyboard navigation
 	document.addEventListener("keydown", (e) => {
-		if (lightbox.style.display === "flex") {
+		if (lightboxModal.classList.contains("active")) {
 			switch (e.key) {
 				case "Escape":
 					closeLightbox();
 					break;
 				case "ArrowLeft":
-					prevImage();
+					if (screenshots.length > 1) prevImage();
 					break;
 				case "ArrowRight":
-					nextImage();
+					if (screenshots.length > 1) nextImage();
 					break;
 			}
 		}
 	});
+}
+
+// Video player functionality
+function initVideoPlayer() {
+	const videoThumbnails = document.querySelectorAll(".video-thumbnail");
+	const videoModal = document.getElementById("video-modal");
+
+	if (videoThumbnails.length === 0 || !videoModal) return;
+
+	const videoPlayerContainer = document.getElementById("video-player-container");
+	const videoCloseBtn = videoModal.querySelector(".video-modal-close");
+
+	// Open video modal
+	function openVideoModal(videoId, videoType) {
+		let embedHTML = "";
+
+		if (videoType === "youtube") {
+			embedHTML = `<iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0" 
+						 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+						 allowfullscreen></iframe>`;
+		} else {
+			// For local videos or other types
+			embedHTML = `<video controls autoplay>
+						 <source src="${videoId}" type="video/mp4">
+						 お使いのブラウザは動画タグをサポートしていません。
+						 </video>`;
+		}
+
+		videoPlayerContainer.innerHTML = embedHTML;
+		videoModal.classList.add("active");
+		document.body.style.overflow = "hidden";
+	}
+
+	// Close video modal
+	function closeVideoModal() {
+		videoModal.classList.remove("active");
+		videoPlayerContainer.innerHTML = "";
+		document.body.style.overflow = "";
+	}
+
+	// Add click events to video thumbnails
+	videoThumbnails.forEach((thumbnail) => {
+		const videoId = thumbnail.getAttribute("data-video-id");
+		const videoType = thumbnail.getAttribute("data-video-type") || "youtube";
+
+		thumbnail.addEventListener("click", () => {
+			openVideoModal(videoId, videoType);
+		});
+
+		// Add keyboard support
+		thumbnail.setAttribute("tabindex", "0");
+		thumbnail.setAttribute("role", "button");
+		thumbnail.setAttribute("aria-label", "動画を再生");
+
+		thumbnail.addEventListener("keydown", (e) => {
+			if (e.key === "Enter" || e.key === " ") {
+				e.preventDefault();
+				openVideoModal(videoId, videoType);
+			}
+		});
+	});
+
+	// Add event listeners
+	if (videoCloseBtn) {
+		videoCloseBtn.addEventListener("click", closeVideoModal);
+	}
+
+	// Close video modal when clicking outside
+	videoModal.addEventListener("click", (e) => {
+		if (e.target === videoModal) {
+			closeVideoModal();
+		}
+	});
+
+	// Keyboard navigation
+	document.addEventListener("keydown", (e) => {
+		if (videoModal.classList.contains("active") && e.key === "Escape") {
+			closeVideoModal();
+		}
+	});
+}
+
+// Enhanced lazy loading with better error handling
+function initEnhancedLazyLoading() {
+	const lazyImages = document.querySelectorAll(".lazy-load");
+
+	if ("IntersectionObserver" in window) {
+		const imageObserver = new IntersectionObserver(
+			(entries, observer) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) {
+						const img = entry.target;
+						const src = img.getAttribute("data-src") || img.src;
+
+						// Create a new image to preload
+						const newImg = new Image();
+						newImg.onload = () => {
+							img.src = src;
+							img.classList.add("loaded");
+							img.classList.remove("lazy-load");
+						};
+						newImg.onerror = () => {
+							img.src = "/images/placeholder.jpg";
+							img.alt = "画像を読み込めませんでした";
+							img.classList.add("loaded");
+							img.classList.remove("lazy-load");
+						};
+						newImg.src = src;
+
+						imageObserver.unobserve(img);
+					}
+				});
+			},
+			{
+				rootMargin: "50px 0px",
+				threshold: 0.01,
+			}
+		);
+
+		lazyImages.forEach((img) => {
+			imageObserver.observe(img);
+		});
+	} else {
+		// Fallback for browsers without IntersectionObserver
+		lazyImages.forEach((img) => {
+			const src = img.getAttribute("data-src") || img.src;
+			img.src = src;
+			img.classList.add("loaded");
+			img.classList.remove("lazy-load");
+		});
+	}
 }
 
 // Export functions for potential use in other scripts
@@ -212,6 +363,8 @@ window.GameSite = {
 	initMobileMenu,
 	initSmoothScrolling,
 	initLazyLoading,
+	initEnhancedLazyLoading,
 	initScreenshotLightbox,
+	initVideoPlayer,
 	handleImageError,
 };
