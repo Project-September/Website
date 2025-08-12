@@ -29,7 +29,7 @@ hugo
 ## ディレクトリ構造
 
 ```
-pc-game-site/
+website/
 ├── config.yaml              # Hugo設定ファイル
 ├── content/                 # Markdownコンテンツ
 │   ├── _index.md           # ホームページ
