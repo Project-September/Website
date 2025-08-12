@@ -1,0 +1,58 @@
+<header class="site-header" role="banner">
+    <div class="container">
+        <div class="header-content">
+            <!-- Site Logo/Title -->
+            <div class="site-branding">
+                <a href="{{ "/" | relURL }}" class="site-logo" aria-label="ホームページに戻る">
+                    <h1 class="site-title">{{ .Site.Params.game.title | default .Site.Title }}</h1>
+                </a>
+                {{ if .Site.Params.game.tagline }}
+                <p class="site-tagline">{{ .Site.Params.game.tagline }}</p>
+                {{ end }}
+            </div>
+            
+            <!-- Desktop Navigation -->
+            <nav class="main-navigation desktop-nav" role="navigation" aria-label="メインナビゲーション">
+                <ul class="nav-menu">
+                    {{ range .Site.Menus.main }}
+                    <li class="nav-item">
+                        <a href="{{ .URL | relURL }}" 
+                           class="nav-link{{ if $.IsMenuCurrent "main" . }} current{{ end }}{{ if $.HasMenuCurrent "main" . }} current-parent{{ end }}"
+                           {{ if .Pre }}aria-label="{{ .Pre }}"{{ end }}>
+                            {{ .Name }}
+                        </a>
+                    </li>
+                    {{ end }}
+                </ul>
+            </nav>
+            
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" 
+                    type="button" 
+                    aria-controls="mobile-menu" 
+                    aria-expanded="false"
+                    aria-label="メニューを開く">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </button>
+        </div>
+        
+        <!-- Mobile Navigation -->
+        <nav class="mobile-navigation mobile-menu" 
+             id="mobile-menu" 
+             role="navigation" 
+             aria-label="モバイルナビゲーション">
+            <ul class="mobile-nav-menu">
+                {{ range .Site.Menus.main }}
+                <li class="mobile-nav-item">
+                    <a href="{{ .URL | relURL }}" 
+                       class="mobile-nav-link{{ if $.IsMenuCurrent "main" . }} current{{ end }}{{ if $.HasMenuCurrent "main" . }} current-parent{{ end }}">
+                        {{ .Name }}
+                    </a>
+                </li>
+                {{ end }}
+            </ul>
+        </nav>
+    </div>
+</header>

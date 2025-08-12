@@ -1,0 +1,171 @@
+{{ define "main" }}
+<!-- Hero Section -->
+<section class="hero-section">
+    {{ if .Site.Params.game.heroImage }}
+    <div class="hero-background">
+        <img src="{{ .Site.Params.game.heroImage | relURL }}" alt="{{ .Site.Params.game.title }} ヒーロー画像" class="hero-bg-image">
+        <div class="hero-overlay"></div>
+    </div>
+    {{ end }}
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="hero-title">{{ .Site.Params.game.title }}</h1>
+            {{ if .Site.Params.game.tagline }}
+            <p class="hero-tagline">{{ .Site.Params.game.tagline }}</p>
+            {{ end }}
+            
+            <div class="hero-actions">
+                {{ if .Site.Params.game.downloadUrl }}
+                <a href="{{ .Site.Params.game.downloadUrl }}" class="btn btn-primary btn-lg hero-btn">
+                    <span class="btn-icon">⬇</span>
+                    ダウンロード
+                </a>
+                {{ end }}
+                {{ if .Site.Params.game.purchaseUrl }}
+                <a href="{{ .Site.Params.game.purchaseUrl }}" class="btn btn-secondary btn-lg hero-btn">
+                    <span class="btn-icon">🛒</span>
+                    購入する
+                </a>
+                {{ end }}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Game Features Section -->
+<section class="game-features">
+    <div class="container">
+        <div class="section-header text-center">
+            <h2 class="section-title">ゲームの特徴</h2>
+            <p class="section-description">このゲームの魅力的な機能をご紹介します</p>
+        </div>
+        
+        <div class="features-grid">
+            {{ range .Site.Params.game.features }}
+            <div class="feature-card">
+                <div class="feature-icon">
+                    {{ .icon | safeHTML }}
+                </div>
+                <h3 class="feature-title">{{ .title }}</h3>
+                <p class="feature-description">{{ .description }}</p>
+            </div>
+            {{ end }}
+        </div>
+    </div>
+</section>
+
+<!-- Media Preview Section -->
+<section class="media-preview">
+    <div class="container">
+        <div class="section-header text-center">
+            <h2 class="section-title">スクリーンショット & 動画</h2>
+            <p class="section-description">ゲームの美しいビジュアルと迫力のあるゲームプレイをご覧ください</p>
+        </div>
+        
+        <!-- Screenshots -->
+        {{ if .Site.Params.game.screenshots }}
+        <div class="screenshots-section">
+            <h3 class="media-section-title">スクリーンショット</h3>
+            <div class="screenshots-grid">
+                {{ range first 6 .Site.Params.game.screenshots }}
+                <div class="screenshot-item">
+                    <img src="{{ .url | relURL }}" alt="{{ .alt }}" class="screenshot-image" loading="lazy">
+                    {{ if .caption }}
+                    <div class="screenshot-caption">{{ .caption }}</div>
+                    {{ end }}
+                </div>
+                {{ end }}
+            </div>
+        </div>
+        {{ end }}
+        
+        <!-- Videos -->
+        {{ if .Site.Params.game.videos }}
+        <div class="videos-section">
+            <h3 class="media-section-title">動画</h3>
+            <div class="videos-grid">
+                {{ range first 3 .Site.Params.game.videos }}
+                <div class="video-item">
+                    {{ if eq .type "youtube" }}
+                    <div class="video-embed">
+                        <iframe src="https://www.youtube.com/embed/{{ .url }}" 
+                                title="{{ .title }}" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen>
+                        </iframe>
+                    </div>
+                    {{ else }}
+                    <div class="video-embed">
+                        <video controls poster="{{ .thumbnail | relURL }}">
+                            <source src="{{ .url | relURL }}" type="video/mp4">
+                            お使いのブラウザは動画タグをサポートしていません。
+                        </video>
+                    </div>
+                    {{ end }}
+                    <div class="video-title">{{ .title }}</div>
+                </div>
+                {{ end }}
+            </div>
+        </div>
+        {{ end }}
+        
+        <!-- Trailer Section -->
+        {{ if .Site.Params.game.trailer }}
+        <div class="trailer-section">
+            <h3 class="media-section-title">公式トレーラー</h3>
+            <div class="trailer-container">
+                {{ if eq .Site.Params.game.trailer.type "youtube" }}
+                <div class="trailer-embed">
+                    <iframe src="https://www.youtube.com/embed/{{ .Site.Params.game.trailer.url }}" 
+                            title="{{ .Site.Params.game.trailer.title }}" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                    </iframe>
+                </div>
+                {{ else }}
+                <div class="trailer-embed">
+                    <video controls poster="{{ .Site.Params.game.trailer.thumbnail | relURL }}">
+                        <source src="{{ .Site.Params.game.trailer.url | relURL }}" type="video/mp4">
+                        お使いのブラウザは動画タグをサポートしていません。
+                    </video>
+                </div>
+                {{ end }}
+            </div>
+        </div>
+        {{ end }}
+    </div>
+</section>
+
+<!-- Main Content -->
+<section class="home-content">
+    <div class="container">
+        {{ .Content }}
+        
+        <!-- Recent News -->
+        {{ $news := where .Site.RegularPages "Section" "news" | first 3 }}
+        {{ if $news }}
+        <section class="recent-news">
+            <h2 class="section-title">最新ニュース</h2>
+            <div class="row">
+                {{ range $news }}
+                <div class="col-md-4">
+                    {{ partial "card.html" (dict 
+                        "title" .Title 
+                        "content" (.Summary | truncate 100) 
+                        "image" .Params.featured_image 
+                        "link" .RelPermalink
+                        "class" "news-card"
+                    ) }}
+                </div>
+                {{ end }}
+            </div>
+            <div class="text-center mt-4">
+                <a href="{{ "news" | relURL }}" class="btn btn-primary">すべてのニュースを見る</a>
+            </div>
+        </section>
+        {{ end }}
+    </div>
+</section>
+{{ end }}

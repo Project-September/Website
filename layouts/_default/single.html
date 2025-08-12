@@ -1,0 +1,29 @@
+{{ define "main" }}
+{{ partial "breadcrumb.html" . }}
+
+<article class="single-content">
+    <div class="container">
+        <header class="content-header">
+            <h1 class="content-title">{{ .Title }}</h1>
+            {{ if .Date }}
+            <div class="content-meta">
+                <time datetime="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}" class="content-date">
+                    {{ .Date.Format "2006年1月2日" }}
+                </time>
+                {{ if .Params.tags }}
+                <div class="content-tags">
+                    {{ range .Params.tags }}
+                    <span class="tag">{{ . }}</span>
+                    {{ end }}
+                </div>
+                {{ end }}
+            </div>
+            {{ end }}
+        </header>
+        
+        <div class="content-body">
+            {{ .Content }}
+        </div>
+    </div>
+</article>
+{{ end }}

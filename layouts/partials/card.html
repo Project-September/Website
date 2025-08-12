@@ -1,0 +1,32 @@
+{{/* Card Component Partial Usage: {{ partial "card.html" (dict "title" "Card Title" "content" "Card content" "image" "/images/card.jpg" "link" "/page/" "class" "custom-class") }} */}} {{ $title :=
+.title }} {{ $content := .content }} {{ $image := .image }} {{ $link := .link }} {{ $class := .class | default "" }}
+
+<div class="card {{ $class }}">
+	{{ if $image }}
+	<div class="card-image">
+		{{ if $link }}
+		<a href="{{ $link | relURL }}">
+			{{ end }}
+			<img src="{{ $image | relURL }}" alt="{{ $title }}" class="img-responsive" loading="lazy" onerror="handleImageError(this)" />
+			{{ if $link }}
+		</a>
+		{{ end }}
+	</div>
+	{{ end }}
+
+	<div class="card-body">
+		{{ if $title }}
+		<h3 class="card-title">
+			{{ if $link }}
+			<a href="{{ $link | relURL }}" class="card-title-link">{{ $title }}</a>
+			{{ else }} {{ $title }} {{ end }}
+		</h3>
+		{{ end }} {{ if $content }}
+		<div class="card-text">{{ $content | safeHTML }}</div>
+		{{ end }} {{ if $link }}
+		<div class="card-actions">
+			<a href="{{ $link | relURL }}" class="btn btn-primary">詳細を見る</a>
+		</div>
+		{{ end }}
+	</div>
+</div>

@@ -1,0 +1,91 @@
+<footer class="site-footer" role="contentinfo">
+    <div class="container">
+        <div class="footer-content">
+            <div class="row">
+                <!-- Game Info -->
+                <div class="col-md-4">
+                    <div class="footer-section">
+                        <h3 class="footer-title">{{ .Site.Params.game.title | default .Site.Title }}</h3>
+                        {{ if .Site.Params.game.tagline }}
+                        <p class="footer-tagline">{{ .Site.Params.game.tagline }}</p>
+                        {{ end }}
+                        <p class="footer-description">
+                            {{ .Site.Params.description | default "魅力的なPCゲームの公式サイトです。" }}
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Quick Links -->
+                <div class="col-md-4">
+                    <div class="footer-section">
+                        <h4 class="footer-section-title">クイックリンク</h4>
+                        <ul class="footer-links">
+                            {{ range .Site.Menus.main }}
+                            <li>
+                                <a href="{{ .URL | relURL }}" class="footer-link">{{ .Name }}</a>
+                            </li>
+                            {{ end }}
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Social Links -->
+                <div class="col-md-4">
+                    <div class="footer-section">
+                        <h4 class="footer-section-title">フォローする</h4>
+                        <div class="social-links">
+                            {{ if .Site.Params.social.twitter }}
+                            <a href="https://twitter.com/{{ .Site.Params.social.twitter | strings.TrimPrefix "@" }}" 
+                               class="social-link twitter" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               aria-label="Twitterでフォロー">
+                                <span class="social-icon">🐦</span>
+                                Twitter
+                            </a>
+                            {{ end }}
+                            
+                            {{ if .Site.Params.social.youtube }}
+                            <a href="https://youtube.com/channel/{{ .Site.Params.social.youtube }}" 
+                               class="social-link youtube" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               aria-label="YouTubeチャンネル">
+                                <span class="social-icon">📺</span>
+                                YouTube
+                            </a>
+                            {{ end }}
+                            
+                            {{ if .Site.Params.social.discord }}
+                            <a href="{{ .Site.Params.social.discord }}" 
+                               class="social-link discord" 
+                               target="_blank" 
+                               rel="noopener noreferrer"
+                               aria-label="Discordサーバー">
+                                <span class="social-icon">💬</span>
+                                Discord
+                            </a>
+                            {{ end }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Copyright -->
+        <div class="footer-bottom">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="copyright">
+                        &copy; {{ now.Year }} {{ .Site.Params.game.title | default .Site.Title }}. All rights reserved.
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <p class="powered-by">
+                        Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>

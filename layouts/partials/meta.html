@@ -1,0 +1,73 @@
+<!-- Basic Meta Tags -->
+<meta name="description" content="{{ if .Description }}{{ .Description }}{{ else if .Summary }}{{ .Summary }}{{ else }}{{ .Site.Params.description | default .Site.Title }}{{ end }}" />
+<meta name="keywords" content="{{ if .Keywords }}{{ delimit .Keywords ", " }}{{ else }}{{ .Site.Params.keywords | default "PCゲーム,インディーゲーム,ゲーム開発" }}{{ end }}">
+<meta name="author" content="{{ .Site.Params.author | default .Site.Title }}" />
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}" />
+<meta property="og:title" content="{{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }} | {{ .Site.Title }}{{ end }}" />
+<meta property="og:description" content="{{ if .Description }}{{ .Description }}{{ else if .Summary }}{{ .Summary }}{{ else }}{{ .Site.Params.description | default .Site.Title }}{{ end }}" />
+<meta property="og:url" content="{{ .Permalink }}" />
+<meta property="og:site_name" content="{{ .Site.Title }}" />
+<meta property="og:locale" content="{{ .Site.LanguageCode | default "ja_JP" }}"> {{ if .Params.featured_image }}
+<meta property="og:image" content="{{ .Params.featured_image | absURL }}" />
+{{ else if .Site.Params.default_image }}
+<meta property="og:image" content="{{ .Site.Params.default_image | absURL }}" />
+{{ end }} {{ if .IsPage }} <meta property="article:published_time" content="{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}"> <meta property="article:modified_time" content="{{ .Lastmod.Format
+"2006-01-02T15:04:05Z07:00" }}"> {{ if .Params.tags }} {{ range .Params.tags }}
+<meta property="article:tag" content="{{ . }}" />
+{{ end }} {{ end }} {{ end }}
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="{{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }} | {{ .Site.Title }}{{ end }}" />
+<meta name="twitter:description" content="{{ if .Description }}{{ .Description }}{{ else if .Summary }}{{ .Summary }}{{ else }}{{ .Site.Params.description | default .Site.Title }}{{ end }}" />
+{{ if .Site.Params.social.twitter }}
+<meta name="twitter:site" content="{{ .Site.Params.social.twitter }}" />
+<meta name="twitter:creator" content="{{ .Site.Params.social.twitter }}" />
+{{ end }} {{ if .Params.featured_image }}
+<meta name="twitter:image" content="{{ .Params.featured_image | absURL }}" />
+{{ else if .Site.Params.default_image }}
+<meta name="twitter:image" content="{{ .Site.Params.default_image | absURL }}" />
+{{ end }}
+
+<!-- Additional Meta Tags -->
+<meta name="robots" content="{{ if .Params.noindex }}noindex, nofollow{{ else }}index, follow{{ end }}" />
+<meta name="googlebot" content="{{ if .Params.noindex }}noindex, nofollow{{ else }}index, follow{{ end }}" />
+
+<!-- Canonical URL -->
+<link rel="canonical" href="{{ .Permalink }}" />
+
+<!-- RSS Feed -->
+{{ with .OutputFormats.Get "rss" }}
+<link rel="alternate" type="application/rss+xml" title="{{ $.Site.Title }}" href="{{ .Permalink }}" />
+{{ end }}
+
+<!-- Preconnect for performance -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+<!-- JSON-LD Structured Data -->
+<script type="application/ld+json">
+	{
+	  "@context": "https://schema.org",
+	  "@type": "{{ if .IsPage }}Article{{ else }}WebSite{{ end }}",
+	  "name": "{{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }}{{ end }}",
+	  "headline": "{{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }}{{ end }}",
+	  "description": "{{ if .Description }}{{ .Description }}{{ else if .Summary }}{{ .Summary }}{{ else }}{{ .Site.Params.description | default .Site.Title }}{{ end }}",
+	  "url": "{{ .Permalink }}",
+	  {{ if .IsPage }}
+	  "datePublished": "{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}",
+	  "dateModified": "{{ .Lastmod.Format "2006-01-02T15:04:05Z07:00" }}",
+	  "author": {
+	    "@type": "Person",
+	    "name": "{{ .Site.Params.author | default .Site.Title }}"
+	  },
+	  {{ end }}
+	  "publisher": {
+	    "@type": "Organization",
+	    "name": "{{ .Site.Title }}",
+	    "url": "{{ .Site.BaseURL }}"
+	  }
+	}
+</script>

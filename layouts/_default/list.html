@@ -1,0 +1,29 @@
+{{ define "main" }} {{ partial "breadcrumb.html" . }}
+
+<section class="list-content">
+	<div class="container">
+		<header class="section-header">
+			<h1 class="section-title">{{ .Title }}</h1>
+			{{ if .Content }}
+			<div class="section-description">{{ .Content }}</div>
+			{{ end }}
+		</header>
+
+		{{ if .Pages }}
+		<div class="content-grid">
+			<div class="row">
+				{{ range .Pages }}
+				<div class="col-md-6 col-lg-4">
+					{{ partial "card.html" (dict "title" .Title "content" (.Summary | truncate 150) "image" .Params.featured_image "link" .RelPermalink "class" "content-card" ) }}
+				</div>
+				{{ end }}
+			</div>
+		</div>
+		{{ else }}
+		<div class="empty-state">
+			<p>コンテンツがまだありません。</p>
+		</div>
+		{{ end }}
+	</div>
+</section>
+{{ end }}
