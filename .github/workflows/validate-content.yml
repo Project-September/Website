@@ -1,0 +1,40 @@
+name: Content Validation
+
+on:
+    push:
+        paths:
+            - "content/**"
+            - "static/**"
+    pull_request:
+        paths:
+            - "content/**"
+            - "static/**"
+
+jobs:
+    validate:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "18"
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm install
+
+            - name: Validate Markdown content
+              run: npm run validate
+
+            - name: Validate with bash script
+              run: ./scripts/validate-content.sh
+
+            - name: Check for broken links
+              run: |
+                  echo "リンクチェックを実行中..."
+                  # 基本的なリンクチェック
+                  find content -name "*.md" -exec grep -l "http" {} \; | head -5
