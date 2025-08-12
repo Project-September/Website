@@ -6,9 +6,14 @@
 		"validate": "node scripts/validate-markdown.js",
 		"validate:content": "./scripts/validate-content.sh",
 		"optimize:images": "./scripts/optimize-images.sh",
-		"build": "hugo --gc --minify",
+		"optimize:assets": "./scripts/optimize-assets.sh",
+		"cache:optimize": "./scripts/cache-management.sh all",
+		"cache:validate": "./scripts/cache-management.sh validate",
+		"cache:report": "./scripts/cache-management.sh report",
+		"build": "npm run optimize:assets && hugo --gc --minify && npm run cache:optimize",
+		"build:fast": "hugo --gc --minify",
 		"serve": "hugo server -D",
-		"clean": "rm -rf public resources"
+		"clean": "rm -rf public resources docs static/css/optimized static/js/optimized"
 	},
 	"devDependencies": {
 		"js-yaml": "^4.1.0"

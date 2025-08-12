@@ -1,0 +1,77 @@
+{
+	"name": "PCゲーム公式サイト",
+	"short_name": "PCゲーム",
+	"description": "PCゲームの公式サイト。最新ニュース、アップデート情報、ゲーム詳細をお届けします。",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#ffffff",
+	"theme_color": "#667eea",
+	"orientation": "portrait-primary",
+	"scope": "/",
+	"lang": "ja",
+	"categories": ["games", "entertainment"],
+	"icons": [
+		{
+			"src": "/images/favicons/android-chrome-192x192.png",
+			"sizes": "192x192",
+			"type": "image/png",
+			"purpose": "any maskable"
+		},
+		{
+			"src": "/images/favicons/android-chrome-512x512.png",
+			"sizes": "512x512",
+			"type": "image/png",
+			"purpose": "any maskable"
+		},
+		{
+			"src": "/images/favicons/apple-touch-icon.png",
+			"sizes": "180x180",
+			"type": "image/png",
+			"purpose": "any"
+		}
+	],
+	"shortcuts": [
+		{
+			"name": "ゲーム詳細",
+			"short_name": "ゲーム",
+			"description": "ゲームの詳細情報とスクリーンショット",
+			"url": "/game/",
+			"icons": [
+				{
+					"src": "/images/favicons/favicon-96x96.png",
+					"sizes": "96x96",
+					"type": "image/png"
+				}
+			]
+		},
+		{
+			"name": "最新ニュース",
+			"short_name": "ニュース",
+			"description": "ゲームの最新ニュースとアップデート情報",
+			"url": "/news/",
+			"icons": [
+				{
+					"src": "/images/favicons/favicon-96x96.png",
+					"sizes": "96x96",
+					"type": "image/png"
+				}
+			]
+		}
+	],
+	"screenshots": [
+		{
+			"src": "/images/screenshot-wide.jpg",
+			"sizes": "1280x720",
+			"type": "image/jpeg",
+			"form_factor": "wide",
+			"label": "ゲームプレイ画面"
+		},
+		{
+			"src": "/images/screenshot-narrow.jpg",
+			"sizes": "720x1280",
+			"type": "image/jpeg",
+			"form_factor": "narrow",
+			"label": "モバイル表示"
+		}
+	]
+}

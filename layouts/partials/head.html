@@ -1,0 +1,57 @@
+{{- $critical := resources.Get "css/main.css" | resources.Minify | resources.Fingerprint -}} {{- $components := resources.Get "css/components.css" | resources.Minify | resources.Fingerprint -}}
+
+<!-- Critical CSS - Inline for performance -->
+<style>
+	{{ $critical.Content | safeCSS }}
+</style>
+
+<!-- Non-critical CSS - Load asynchronously -->
+<link rel="preload" href="{{ $components.RelPermalink }}" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+<noscript><link rel="stylesheet" href="{{ $components.RelPermalink }}" /></noscript>
+
+<!-- Lightbox CSS - Load on demand -->
+{{- if .Params.lightbox -}} {{- $lightbox := resources.Get "css/lightbox.css" | resources.Minify | resources.Fingerprint -}}
+<link rel="stylesheet" href="{{ $lightbox.RelPermalink }}" />
+{{- end -}}
+
+<!-- Preload critical JavaScript -->
+{{- $mainJS := resources.Get "js/main.js" | resources.Minify | resources.Fingerprint -}}
+<link rel="preload" href="{{ $mainJS.RelPermalink }}" as="script" />
+
+<!-- DNS prefetch for external resources -->
+<link rel="dns-prefetch" href="//www.youtube.com" />
+<link rel="dns-prefetch" href="//img.youtube.com" />
+
+<!-- Web App Manifest -->
+<link rel="manifest" href="/manifest.json" />
+
+<!-- Favicon -->
+<link rel="icon" type="image/x-icon" href="/favicon.ico" />
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicons/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicons/favicon-16x16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/images/favicons/apple-touch-icon.png" />
+
+<!-- Meta tags -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="{{ .Description | default .Site.Params.description }}" />
+<meta name="author" content="{{ .Site.Params.author.name }}" />
+
+<!-- Open Graph -->
+<meta property="og:title" content="{{ .Title | default .Site.Title }}" />
+<meta property="og:description" content="{{ .Description | default .Site.Params.description }}" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="{{ .Permalink }}" />
+{{- if .Params.featured_image -}}
+<meta property="og:image" content="{{ .Params.featured_image | absURL }}" />
+{{- end -}}
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="{{ .Title | default .Site.Title }}" />
+<meta name="twitter:description" content="{{ .Description | default .Site.Params.description }}" />
+{{- if .Params.featured_image -}}
+<meta name="twitter:image" content="{{ .Params.featured_image | absURL }}" />
+{{- end -}}
+
+<title>{{ .Title | default .Site.Title }}</title>

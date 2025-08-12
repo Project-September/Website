@@ -113,6 +113,21 @@ imaging:
   anchor: "smart"
   bgColor: "#ffffff"
   hint: "photo"
+  
+# 画像処理パイプライン設定
+params:
+  images:
+    # レスポンシブ画像のサイズ設定
+    responsive_sizes: [400, 800, 1200, 1600]
+    # WebP品質設定
+    webp_quality: 85
+    # JPEG品質設定
+    jpeg_quality: 80
+    # 遅延読み込み設定
+    lazy_loading: true
+    # プレースホルダー設定
+    placeholder_quality: 20
+    placeholder_blur: 2
 
 # アセット処理設定
 minify:
@@ -125,25 +140,32 @@ minify:
   minifyOutput: true
   tdewolff:
     css:
-      keepCSS2: true
-      precision: 0
+      keepCSS2: false
+      precision: 1
+      keepComments: false
     html:
       keepComments: false
-      keepConditionalComments: true
-      keepDefaultAttrVals: true
+      keepConditionalComments: false
+      keepDefaultAttrVals: false
       keepDocumentTags: true
       keepEndTags: true
       keepQuotes: false
       keepWhitespace: false
     js:
       keepVarNames: false
-      precision: 0
+      precision: 1
+      keepComments: false
     json:
-      precision: 0
+      precision: 1
     svg:
-      precision: 0
+      precision: 1
+      keepComments: false
     xml:
       keepWhitespace: false
+
+# アセットパイプライン設定
+assets:
+  disableFingerprinting: false
 
 # GitHub Pages設定
 publishDir: "docs"

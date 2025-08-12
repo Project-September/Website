@@ -1,0 +1,24 @@
+{{/* Responsive Image Shortcode with Lazy Loading */}} {{- $src := .Get "src" -}} {{- $alt := .Get "alt" | default "" -}} {{- $caption := .Get "caption" | default "" -}} {{- $class := .Get "class" |
+default "" -}} {{- $lazy := .Get "lazy" | default "true" -}} {{- $image := resources.Get $src -}} {{- if $image -}} {{/* Generate multiple sizes for responsive images */}} {{- $small := $image.Resize
+"400x webp q85" -}} {{- $medium := $image.Resize "800x webp q85" -}} {{- $large := $image.Resize "1200x webp q85" -}} {{- $xlarge := $image.Resize "1600x webp q85" -}} {{/* Fallback JPEG versions */}}
+{{- $smallJpg := $image.Resize "400x jpg q80" -}} {{- $mediumJpg := $image.Resize "800x jpg q80" -}} {{- $largeJpg := $image.Resize "1200x jpg q80" -}} {{- $xlargeJpg := $image.Resize "1600x jpg q80"
+-}} {{/* Generate placeholder for lazy loading */}} {{- $placeholder := $image.Resize "20x jpg q20" -}}
+
+<picture class="responsive-image {{ $class }}">
+	{{/* WebP sources */}} <source media="(min-width: 1200px)" {{ if eq $lazy "true" }}data-{{ end }}srcset="{{ $xlarge.RelPermalink }} 1600w, {{ $large.RelPermalink }} 1200w" sizes="(min-width:
+	1200px) 1200px, 100vw" type="image/webp"> <source media="(min-width: 800px)" {{ if eq $lazy "true" }}data-{{ end }}srcset="{{ $large.RelPermalink }} 1200w, {{ $medium.RelPermalink }} 800w"
+	sizes="(min-width: 800px) 800px, 100vw" type="image/webp"> <source media="(min-width: 400px)" {{ if eq $lazy "true" }}data-{{ end }}srcset="{{ $medium.RelPermalink }} 800w, {{ $small.RelPermalink
+	}} 400w" sizes="(min-width: 400px) 400px, 100vw" type="image/webp"> {{/* JPEG fallback sources */}} <source media="(min-width: 1200px)" {{ if eq $lazy "true" }}data-{{ end }}srcset="{{
+	$xlargeJpg.RelPermalink }} 1600w, {{ $largeJpg.RelPermalink }} 1200w" sizes="(min-width: 1200px) 1200px, 100vw" type="image/jpeg"> <source media="(min-width: 800px)" {{ if eq $lazy "true"
+	}}data-{{ end }}srcset="{{ $largeJpg.RelPermalink }} 1200w, {{ $mediumJpg.RelPermalink }} 800w" sizes="(min-width: 800px) 800px, 100vw" type="image/jpeg"> <source media="(min-width: 400px)" {{ if
+	eq $lazy "true" }}data-{{ end }}srcset="{{ $mediumJpg.RelPermalink }} 800w, {{ $smallJpg.RelPermalink }} 400w" sizes="(min-width: 400px) 400px, 100vw" type="image/jpeg"> {{/* Default img element
+	*/}} <img {{ if eq $lazy "true" }} src="{{ $placeholder.RelPermalink }}" data-src="{{ $mediumJpg.RelPermalink }}" class="lazy {{ $class }}" loading="lazy" {{ else }} src="{{
+	$mediumJpg.RelPermalink }}" class="{{ $class }}" {{ end }} alt="{{ $alt }}" width="{{ $medium.Width }}" height="{{ $medium.Height }}" {{ if $caption }}data-caption="{{ $caption }}"{{ end }}>
+</picture>
+
+{{ if $caption }}
+<figcaption class="image-caption">{{ $caption }}</figcaption>
+{{ end }} {{- else -}} {{/* Fallback for missing images */}} <img src="/images/placeholder.jpg" alt="{{ $alt | default "画像を読み込めませんでした" }}" class="image-error {{ $class }}" width="400"
+height="300"> {{ if $caption }}
+<figcaption class="image-caption">{{ $caption }}</figcaption>
+{{ end }} {{- end -}}

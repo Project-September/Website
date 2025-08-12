@@ -1,0 +1,66 @@
+# Cache Headers for Netlify/GitHub Pages
+# キャッシュヘッダー設定
+
+# HTML files - Short cache with revalidation
+/*.html
+  Cache-Control: public, max-age=300, must-revalidate
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# Root HTML
+/
+  Cache-Control: public, max-age=300, must-revalidate
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# CSS files - Long cache with fingerprinting
+/css/*
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+# JavaScript files - Long cache with fingerprinting
+/js/*
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+# Images - Long cache
+/images/*
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+# Fonts - Long cache
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+# Service Worker - No cache
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  X-Content-Type-Options: nosniff
+
+# Manifest - Short cache
+/manifest.json
+  Cache-Control: public, max-age=86400
+  X-Content-Type-Options: nosniff
+
+# RSS feeds - Short cache
+/*.xml
+  Cache-Control: public, max-age=3600
+  X-Content-Type-Options: nosniff
+
+# Favicon - Medium cache
+/favicon.ico
+  Cache-Control: public, max-age=604800
+  X-Content-Type-Options: nosniff
+
+# Security headers for all files
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()

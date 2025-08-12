@@ -1,0 +1,48 @@
+{{- $mainJS := resources.Get "js/main.js" | resources.Minify | resources.Fingerprint -}} {{- $lazyJS := resources.Get "js/lazy-loading.js" | resources.Minify | resources.Fingerprint -}}
+
+<!-- Main JavaScript -->
+<script src="{{ $mainJS.RelPermalink }}" defer></script>
+
+<!-- Lazy Loading JavaScript -->
+<script src="{{ $lazyJS.RelPermalink }}" defer></script>
+
+<!-- Lightbox JavaScript - Load on demand -->
+{{- if .Params.lightbox -}} {{- $lightboxJS := resources.Get "js/lightbox.js" | resources.Minify | resources.Fingerprint -}}
+<script src="{{ $lightboxJS.RelPermalink }}" defer></script>
+{{- end -}}
+
+<!-- Service Worker Registration -->
+<script>
+	if ("serviceWorker" in navigator) {
+		window.addEventListener("load", function () {
+			navigator.serviceWorker
+				.register("/sw.js")
+				.then(function (registration) {
+					console.log("ServiceWorker registered successfully:", registration.scope);
+
+					// Check for updates
+					registration.addEventListener("updatefound", function () {
+						const newWorker = registration.installing;
+						newWorker.addEventListener("statechange", function () {
+							if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+								// New content available, show update notification
+								if (confirm("新しいバージョンが利用可能です。更新しますか？")) {
+									window.location.reload();
+								}
+							}
+						});
+					});
+
+					// Clean cache periodically
+					setInterval(function () {
+						if (registration.active) {
+							registration.active.postMessage({ type: "CLEAN_CACHE" });
+						}
+					}, 300000); // 5 minutes
+				})
+				.catch(function (err) {
+					console.log("ServiceWorker registration failed:", err);
+				});
+		});
+	}
+</script>

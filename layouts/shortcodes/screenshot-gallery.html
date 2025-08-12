@@ -1,0 +1,64 @@
+{{/* Screenshot Gallery with Lazy Loading and Lightbox */}} {{- $images := .Site.Params.game.screenshots -}} {{- $class := .Get "class" | default "screenshots-grid" -}}
+
+<div class="{{ $class }}">
+	{{- range $index, $screenshot := $images -}} {{- $image := resources.Get $screenshot.url -}} {{- if $image -}} {{/* Generate optimized versions */}} {{- $thumb := $image.Resize "400x300 webp q85"
+	-}} {{- $medium := $image.Resize "800x600 webp q85" -}} {{- $large := $image.Resize "1200x900 webp q85" -}} {{/* JPEG fallbacks */}} {{- $thumbJpg := $image.Resize "400x300 jpg q80" -}} {{-
+	$mediumJpg := $image.Resize "800x600 jpg q80" -}} {{- $largeJpg := $image.Resize "1200x900 jpg q80" -}} {{/* Placeholder */}} {{- $placeholder := $image.Resize "20x15 jpg q20" -}}
+
+	<div class="screenshot-item" data-index="{{ $index }}">
+		<picture>
+			{{/* WebP sources */}}
+			<source
+				data-srcset="{{ $large.RelPermalink }} 1200w, {{ $medium.RelPermalink }} 800w, {{ $thumb.RelPermalink }} 400w"
+				sizes="(min-width: 800px) 400px, (min-width: 400px) 350px, 300px"
+				type="image/webp"
+			/>
+
+			{{/* JPEG fallback */}}
+			<source
+				data-srcset="{{ $largeJpg.RelPermalink }} 1200w, {{ $mediumJpg.RelPermalink }} 800w, {{ $thumbJpg.RelPermalink }} 400w"
+				sizes="(min-width: 800px) 400px, (min-width: 400px) 350px, 300px"
+				type="image/jpeg"
+			/>
+
+			<img
+				src="{{ $placeholder.RelPermalink }}"
+				data-src="{{ $thumbJpg.RelPermalink }}"
+				data-large="{{ $largeJpg.RelPermalink }}"
+				alt="{{ $screenshot.alt }}"
+				data-caption="{{ $screenshot.caption }}"
+				class="screenshot-image lazy"
+				loading="lazy"
+				width="{{ $thumb.Width }}"
+				height="{{ $thumb.Height }}"
+			/>
+		</picture>
+
+		<div class="screenshot-overlay">
+			<h4 class="screenshot-title">{{ $screenshot.caption }}</h4>
+			<p class="screenshot-description">クリックして拡大表示</p>
+		</div>
+	</div>
+	{{- else -}} {{/* Fallback for missing images */}}
+	<div class="screenshot-item" data-index="{{ $index }}">
+		<img src="/images/placeholder.jpg" alt="{{ $screenshot.alt | default "スクリーンショット" }}" data-caption="{{ $screenshot.caption }}" class="screenshot-image" width="400" height="300">
+
+		<div class="screenshot-overlay">
+			<h4 class="screenshot-title">{{ $screenshot.caption }}</h4>
+			<p class="screenshot-description">クリックして拡大表示</p>
+		</div>
+	</div>
+	{{- end -}} {{- end -}}
+</div>
+
+{{/* Lightbox Modal */}}
+<div id="lightbox-modal" class="lightbox" style="display: none">
+	<div class="lightbox-overlay"></div>
+	<div class="lightbox-content">
+		<button class="lightbox-close" aria-label="閉じる">&times;</button>
+		<img id="lightbox-image" class="lightbox-image" alt="" />
+		<div id="lightbox-caption" class="lightbox-caption"></div>
+		<button id="lightbox-prev" class="lightbox-prev" aria-label="前の画像">&#8249;</button>
+		<button id="lightbox-next" class="lightbox-next" aria-label="次の画像">&#8250;</button>
+	</div>
+</div>
