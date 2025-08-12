@@ -1,0 +1,42 @@
+baseURL: 'https://username.github.io/pc-game-site'
+languageCode: 'ja'
+title: 'PCゲーム公式サイト'
+# theme: 'custom-game-theme'  # テーマは後のタスクで実装
+
+params:
+  game:
+    title: "PCゲームタイトル"
+    tagline: "魅力的なキャッチフレーズ"
+    downloadUrl: "#"
+    purchaseUrl: "#"
+  
+  social:
+    twitter: "@gamedev"
+    youtube: "channel-id"
+
+menu:
+  main:
+    - name: "ホーム"
+      url: "/"
+      weight: 1
+    - name: "ゲーム"
+      url: "/game/"
+      weight: 2
+    - name: "ニュース"
+      url: "/news/"
+      weight: 3
+    - name: "開発者について"
+      url: "/about/"
+      weight: 4
+
+markup:
+  goldmark:
+    renderer:
+      unsafe: true
+
+outputs:
+  home: ["HTML", "RSS"]
+  page: ["HTML"]
+
+# GitHub Pages設定
+publishDir: "docs"
