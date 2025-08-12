@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>お知らせ - PCゲーム公式サイト</title>
+    <link>http://localhost:1313/pc-game-site/tags/%E3%81%8A%E7%9F%A5%E3%82%89%E3%81%9B/</link>
+    <description>PCゲーム公式サイト - お知らせ</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>ja</language>
+    <managingEditor>developer@example.com (ゲーム開発者)</managingEditor>
+    <webMaster>developer@example.com (ゲーム開発者)</webMaster>
+    <lastBuildDate>Mon, 15 Jan 2024 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/pc-game-site/tags/%E3%81%8A%E7%9F%A5%E3%82%89%E3%81%9B/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>ゲーム正式リリースのお知らせ</title>
+      <link>http://localhost:1313/pc-game-site/news/posts/game-release-announcement/</link>
+      <pubDate>Mon, 15 Jan 2024 00:00:00 +0000</pubDate>
+      <author>developer@example.com (ゲーム開発者)</author>
+      <guid>http://localhost:1313/pc-game-site/news/posts/game-release-announcement/</guid>
+      <description>長らくお待たせいたしました。ついにゲームの正式版がリリースされました！新機能や改善点について詳しくご紹介します。</description>
+      
+      
+      <category>リリース</category>
+      
+      <category>お知らせ</category>
+      
+      
+      
+      <enclosure url="http://localhost:1313/images/placeholder.jpg" type="image/jpeg" />
+      
+    </item>
+    
+  </channel>
+</rss>

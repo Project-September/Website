@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Categories on PCゲーム公式サイト</title>
-    <link>https://username.github.io/pc-game-site/categories/</link>
-    <description>Recent content in Categories on PCゲーム公式サイト</description>
-    <generator>Hugo</generator>
+    <title>Categories - PCゲーム公式サイト</title>
+    <link>http://localhost:1313/pc-game-site/categories/</link>
+    <description>PCゲーム公式サイト - Categories</description>
+    <generator>Hugo -- gohugo.io</generator>
     <language>ja</language>
-    <atom:link href="https://username.github.io/pc-game-site/categories/index.xml" rel="self" type="application/rss+xml" />
+    <managingEditor>developer@example.com (ゲーム開発者)</managingEditor>
+    <webMaster>developer@example.com (ゲーム開発者)</webMaster><atom:link href="http://localhost:1313/pc-game-site/categories/index.xml" rel="self" type="application/rss+xml" />
   </channel>
 </rss>

@@ -4,6 +4,10 @@ title: 'PCゲーム公式サイト'
 # theme: 'custom-game-theme'  # テーマは後のタスクで実装
 
 params:
+  description: "PCゲームの公式サイト。最新ニュース、アップデート情報、ゲーム詳細をお届けします。"
+  author:
+    name: "ゲーム開発者"
+    email: "developer@example.com"
   game:
     title: "PCゲームタイトル"
     tagline: "魅力的なキャッチフレーズ"
@@ -94,6 +98,13 @@ markup:
 outputs:
   home: ["HTML", "RSS"]
   page: ["HTML"]
+  section: ["HTML", "RSS"]
+
+# RSS設定
+rss:
+  limit: 20
+
+
 
 # GitHub Pages設定
 publishDir: "docs"

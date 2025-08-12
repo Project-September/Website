@@ -1,0 +1,114 @@
+{{ define "main" }}
+{{ partial "breadcrumb.html" . }}
+
+<section class="news-list">
+    <div class="container">
+        <header class="section-header">
+            <div class="section-header-content">
+                <div class="section-title-area">
+                    <h1 class="section-title">{{ .Title }}</h1>
+                    {{ with .OutputFormats.Get "rss" }}
+                    <a href="{{ .Permalink }}" class="rss-link" title="RSS フィードを購読" aria-label="RSS フィードを購読">
+                        <span class="rss-icon">📡</span>
+                        RSS
+                    </a>
+                    {{ end }}
+                </div>
+                {{ if .Content }}
+                <div class="section-description">{{ .Content }}</div>
+                {{ end }}
+            </div>
+        </header>
+
+        {{ if .Pages }}
+        <div class="news-articles">
+            {{ range (.Paginate (.Pages.ByDate.Reverse)).Pages }}
+            <article class="news-article">
+                <div class="article-meta">
+                    <time class="article-date" datetime="{{ .Date.Format "2006-01-02" }}">
+                        {{ .Date.Format "2006年1月2日" }}
+                    </time>
+                    {{ if .Params.tags }}
+                    <div class="article-tags">
+                        {{ range .Params.tags }}
+                        <span class="tag">{{ . }}</span>
+                        {{ end }}
+                    </div>
+                    {{ end }}
+                </div>
+                
+                <div class="article-content">
+                    {{ if .Params.featured_image }}
+                    <div class="article-image">
+                        <a href="{{ .RelPermalink }}">
+                            <img src="{{ .Params.featured_image | relURL }}" 
+                                 alt="{{ .Title }}" 
+                                 class="img-responsive" 
+                                 loading="lazy" 
+                                 onerror="handleImageError(this)" />
+                        </a>
+                    </div>
+                    {{ end }}
+                    
+                    <div class="article-text">
+                        <h2 class="article-title">
+                            <a href="{{ .RelPermalink }}" class="article-title-link">{{ .Title }}</a>
+                        </h2>
+                        
+                        <div class="article-summary">
+                            {{ if .Params.excerpt }}
+                                {{ .Params.excerpt | safeHTML }}
+                            {{ else }}
+                                {{ .Summary | truncate 200 }}
+                            {{ end }}
+                        </div>
+                        
+                        <div class="article-actions">
+                            <a href="{{ .RelPermalink }}" class="btn btn-primary">続きを読む</a>
+                        </div>
+                    </div>
+                </div>
+            </article>
+            {{ end }}
+        </div>
+
+        <!-- Pagination -->
+        {{ if gt .Paginator.TotalPages 1 }}
+        <nav class="pagination-nav" aria-label="ページネーション">
+            <div class="pagination">
+                {{ if .Paginator.HasPrev }}
+                <a href="{{ .Paginator.Prev.URL }}" class="pagination-link pagination-prev" rel="prev">
+                    <span aria-hidden="true">&laquo;</span>
+                    <span class="sr-only">前のページ</span>
+                </a>
+                {{ end }}
+
+                {{ range .Paginator.Pagers }}
+                {{ if eq . $.Paginator }}
+                <span class="pagination-link pagination-current" aria-current="page">{{ .PageNumber }}</span>
+                {{ else }}
+                <a href="{{ .URL }}" class="pagination-link">{{ .PageNumber }}</a>
+                {{ end }}
+                {{ end }}
+
+                {{ if .Paginator.HasNext }}
+                <a href="{{ .Paginator.Next.URL }}" class="pagination-link pagination-next" rel="next">
+                    <span class="sr-only">次のページ</span>
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+                {{ end }}
+            </div>
+        </nav>
+        {{ end }}
+
+        {{ else }}
+        <div class="empty-state">
+            <div class="empty-state-content">
+                <h3>まだニュースがありません</h3>
+                <p>最新のゲーム情報とアップデートをお楽しみに！</p>
+            </div>
+        </div>
+        {{ end }}
+    </div>
+</section>
+{{ end }}

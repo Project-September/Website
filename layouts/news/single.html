@@ -1,0 +1,97 @@
+{{ define "main" }}
+{{ partial "breadcrumb.html" . }}
+
+<article class="single-article">
+    <div class="container">
+        <header class="single-article-header">
+            <h1 class="single-article-title">{{ .Title }}</h1>
+            
+            <div class="single-article-meta">
+                <div class="single-article-date">
+                    <time datetime="{{ .Date.Format "2006-01-02" }}">
+                        {{ .Date.Format "2006年1月2日" }}
+                    </time>
+                </div>
+                
+                {{ if .Params.tags }}
+                <div class="single-article-tags">
+                    {{ range .Params.tags }}
+                    <span class="tag">{{ . }}</span>
+                    {{ end }}
+                </div>
+                {{ end }}
+            </div>
+            
+            {{ if .Params.excerpt }}
+            <div class="single-article-excerpt">
+                <p><strong>{{ .Params.excerpt | safeHTML }}</strong></p>
+            </div>
+            {{ end }}
+            
+            {{ if .Params.featured_image }}
+            <div class="single-article-featured-image">
+                <img src="{{ .Params.featured_image | relURL }}" 
+                     alt="{{ .Title }}" 
+                     class="img-responsive" 
+                     loading="lazy" 
+                     onerror="handleImageError(this)" />
+            </div>
+            {{ end }}
+        </header>
+        
+        <div class="single-article-content">
+            {{ .Content }}
+        </div>
+        
+        <!-- Article Navigation -->
+        <nav class="article-navigation" aria-label="記事ナビゲーション">
+            {{ with .PrevInSection }}
+            <a href="{{ .RelPermalink }}" class="article-nav-link article-nav-prev" rel="prev">
+                <div class="article-nav-label">前の記事</div>
+                <div class="article-nav-title">{{ .Title }}</div>
+            </a>
+            {{ else }}
+            <div></div>
+            {{ end }}
+            
+            {{ with .NextInSection }}
+            <a href="{{ .RelPermalink }}" class="article-nav-link article-nav-next" rel="next">
+                <div class="article-nav-label">次の記事</div>
+                <div class="article-nav-title">{{ .Title }}</div>
+            </a>
+            {{ end }}
+        </nav>
+        
+        <!-- Back to News List -->
+        <div class="back-to-list">
+            <a href="{{ "/news/" | relURL }}" class="btn btn-secondary">
+                <span aria-hidden="true">←</span>
+                ニュース一覧に戻る
+            </a>
+        </div>
+    </div>
+</article>
+
+<!-- Related Articles -->
+{{ $related := .Site.RegularPages.Related . | first 3 }}
+{{ if $related }}
+<section class="related-articles">
+    <div class="container">
+        <h2 class="section-title">関連記事</h2>
+        <div class="row">
+            {{ range $related }}
+            <div class="col-md-4">
+                {{ partial "card.html" (dict 
+                    "title" .Title 
+                    "content" (.Summary | truncate 120) 
+                    "image" .Params.featured_image 
+                    "link" .RelPermalink 
+                    "class" "related-article-card"
+                ) }}
+            </div>
+            {{ end }}
+        </div>
+    </div>
+</section>
+{{ end }}
+{{ end }}
