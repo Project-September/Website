@@ -1,0 +1,89 @@
+# GitHub Pages用のHugoサイトビルド・デプロイワークフロー
+name: Deploy Hugo site to Pages
+
+on:
+    # mainブランチへのプッシュ時に実行
+    push:
+        branches:
+            - main
+
+    # 手動実行を許可
+    workflow_dispatch:
+
+# GitHub Pagesへのデプロイ権限を設定
+permissions:
+    contents: read
+    pages: write
+    id-token: write
+
+# 同時実行を制限（新しいデプロイが開始されたら古いものをキャンセル）
+concurrency:
+    group: "pages"
+    cancel-in-progress: false
+
+# デフォルトのシェル設定
+defaults:
+    run:
+        shell: bash
+
+jobs:
+    # ビルドジョブ
+    build:
+        runs-on: ubuntu-latest
+        env:
+            HUGO_VERSION: 0.148.2
+        steps:
+            - name: Hugoのインストール
+              run: |
+                  wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb \
+                  && sudo dpkg -i ${{ runner.temp }}/hugo.deb
+
+            - name: Gitのインストール
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y git
+
+            - name: リポジトリのチェックアウト
+              uses: actions/checkout@v4
+              with:
+                  submodules: recursive
+                  fetch-depth: 0
+
+            - name: GitHub Pagesの設定
+              id: pages
+              uses: actions/configure-pages@v4
+
+            - name: Node.jsの設定（必要に応じて）
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "18"
+                  cache: "npm"
+                  cache-dependency-path: "**/package-lock.json"
+
+            - name: Hugoでサイトをビルド
+              env:
+                  # 本番環境用の設定
+                  HUGO_ENVIRONMENT: production
+                  HUGO_ENV: production
+              run: |
+                  hugo \
+                    --gc \
+                    --minify \
+                    --baseURL "${{ steps.pages.outputs.base_url }}/"
+
+            - name: ビルド成果物をアップロード
+              uses: actions/upload-pages-artifact@v3
+              with:
+                  path: ./public
+
+    # デプロイジョブ
+    deploy:
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+        runs-on: ubuntu-latest
+        needs: build
+        steps:
+            - name: GitHub Pagesにデプロイ
+              id: deployment
+              uses: actions/deploy-pages@v4
