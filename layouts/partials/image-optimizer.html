@@ -1,0 +1,47 @@
+{{/* 
+画像最適化パーシャル
+使用例: {{ partial "image-optimizer.html" (dict "src" "image.jpg" "alt" "説明" "class" "hero-image") }}
+*/}}
+{{ $src := .src }}
+{{ $alt := .alt | default "" }}
+{{ $class := .class | default "" }}
+{{ $sizes := .sizes | default "(max-width: 768px) 100vw, 800px" }}
+{{ $lazy := .lazy | default true }}
+
+{{ $image := "" }}
+{{ if strings.HasPrefix $src "/" }}
+  {{ $image = resources.Get (strings.TrimPrefix "/" $src) }}
+{{ else }}
+  {{ $image = resources.Get $src }}
+{{ end }}
+
+{{ if $image }}
+  {{ $webpLarge := $image.Resize "1200x webp q85" }}
+  {{ $webpMedium := $image.Resize "800x webp q85" }}
+  {{ $webpSmall := $image.Resize "400x webp q80" }}
+  {{ $jpegLarge := $image.Resize "1200x jpeg q85" }}
+  {{ $jpegMedium := $image.Resize "800x jpeg q85" }}
+  {{ $jpegSmall := $image.Resize "400x jpeg q80" }}
+  
+  <picture{{ with $class }} class="{{ . }}"{{ end }}>
+    <source 
+      srcset="{{ $webpSmall.RelPermalink }} 400w, {{ $webpMedium.RelPermalink }} 800w, {{ $webpLarge.RelPermalink }} 1200w"
+      sizes="{{ $sizes }}"
+      type="image/webp"
+    >
+    <img 
+      src="{{ $jpegMedium.RelPermalink }}"
+      srcset="{{ $jpegSmall.RelPermalink }} 400w, {{ $jpegMedium.RelPermalink }} 800w, {{ $jpegLarge.RelPermalink }} 1200w"
+      sizes="{{ $sizes }}"
+      alt="{{ $alt }}"
+      {{ if $lazy }}loading="lazy"{{ end }}
+    >
+  </picture>
+{{ else }}
+  <img 
+    src="/images/placeholder.jpg" 
+    alt="{{ $alt }}"
+    {{ with $class }}class="{{ . }}"{{ end }}
+    {{ if $lazy }}loading="lazy"{{ end }}
+  >
+{{ end }}

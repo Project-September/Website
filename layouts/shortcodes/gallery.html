@@ -1,0 +1,21 @@
+{{/* 画像ギャラリーショートコード 使用例: {{< gallery folder="screenshots" >}} */}} {{ $folder := .Get "folder" | default "gallery" }} {{ $class := .Get "class" | default "gallery" }}
+
+<div class="{{ $class }}">
+	{{ range (readDir (printf "static/images/%s" $folder)) }} {{ if not .IsDir }} {{ $imagePath := printf "images/%s/%s" $folder .Name }} {{ $image := resources.Get $imagePath }} {{ if $image }} {{
+	$webp := $image.Resize "400x webp q85" }} {{ $jpeg := $image.Resize "400x jpeg q85" }} {{ $thumb := $image.Resize "200x jpeg q75" }}
+
+	<div class="gallery-item">
+		<picture>
+			<source srcset="{{ $webp.RelPermalink }}" type="image/webp" />
+			<img
+				src="{{ $jpeg.RelPermalink }}"
+				alt="{{ .Name }}"
+				loading="lazy"
+				srcset="{{ $thumb.RelPermalink }} 200w, {{ $jpeg.RelPermalink }} 400w"
+				sizes="(max-width: 400px) 200px, 400px"
+				onclick="openLightbox('{{ $jpeg.RelPermalink }}', '{{ .Name }}')"
+			/>
+		</picture>
+	</div>
+	{{ end }} {{ end }} {{ end }}
+</div>

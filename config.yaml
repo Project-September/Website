@@ -106,5 +106,44 @@ rss:
 
 
 
+# 画像処理設定
+imaging:
+  resampleFilter: "lanczos"
+  quality: 85
+  anchor: "smart"
+  bgColor: "#ffffff"
+  hint: "photo"
+
+# アセット処理設定
+minify:
+  disableCSS: false
+  disableHTML: false
+  disableJS: false
+  disableJSON: false
+  disableSVG: false
+  disableXML: false
+  minifyOutput: true
+  tdewolff:
+    css:
+      keepCSS2: true
+      precision: 0
+    html:
+      keepComments: false
+      keepConditionalComments: true
+      keepDefaultAttrVals: true
+      keepDocumentTags: true
+      keepEndTags: true
+      keepQuotes: false
+      keepWhitespace: false
+    js:
+      keepVarNames: false
+      precision: 0
+    json:
+      precision: 0
+    svg:
+      precision: 0
+    xml:
+      keepWhitespace: false
+
 # GitHub Pages設定
 publishDir: "docs"

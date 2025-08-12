@@ -1,0 +1,47 @@
+{{/* 
+画像最適化ショートコード
+使用例: {{< img src="image.jpg" alt="説明" class="responsive" >}}
+*/}}
+{{ $src := .Get "src" }}
+{{ $alt := .Get "alt" | default "" }}
+{{ $class := .Get "class" | default "" }}
+{{ $caption := .Get "caption" | default "" }}
+{{ $lazy := .Get "lazy" | default "true" }}
+
+{{ $image := "" }}
+{{ if strings.HasPrefix $src "/" }}
+  {{ $image = resources.Get (strings.TrimPrefix "/" $src) }}
+{{ else }}
+  {{ $image = resources.Get $src }}
+{{ end }}
+
+{{ if $image }}
+  {{ $webp := $image.Resize "800x webp q85" }}
+  {{ $jpeg := $image.Resize "800x jpeg q85" }}
+  {{ $small := $image.Resize "400x jpeg q80" }}
+  {{ $thumb := $image.Resize "200x jpeg q75" }}
+  
+  <figure{{ with $class }} class="{{ . }}"{{ end }}>
+    <picture>
+      <source srcset="{{ $webp.RelPermalink }}" type="image/webp">
+      <img 
+        src="{{ $jpeg.RelPermalink }}"
+        alt="{{ $alt }}"
+        {{ if eq $lazy "true" }}loading="lazy"{{ end }}
+        srcset="{{ $thumb.RelPermalink }} 200w, {{ $small.RelPermalink }} 400w, {{ $jpeg.RelPermalink }} 800w"
+        sizes="(max-width: 400px) 200px, (max-width: 800px) 400px, 800px"
+      >
+    </picture>
+    {{ with $caption }}<figcaption>{{ . }}</figcaption>{{ end }}
+  </figure>
+{{ else }}
+  <!-- フォールバック: 画像が見つからない場合 -->
+  <figure{{ with $class }} class="{{ . }}"{{ end }}>
+    <img 
+      src="/images/placeholder.jpg" 
+      alt="{{ $alt }}"
+      {{ if eq $lazy "true" }}loading="lazy"{{ end }}
+    >
+    {{ with $caption }}<figcaption>{{ . }}</figcaption>{{ end }}
+  </figure>
+{{ end }}

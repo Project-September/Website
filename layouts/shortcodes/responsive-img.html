@@ -1,0 +1,46 @@
+{{/* 
+レスポンシブ画像ショートコード
+使用例: {{< responsive-img src="hero.jpg" alt="ヒーロー画像" sizes="(max-width: 768px) 100vw, 50vw" >}}
+*/}}
+{{ $src := .Get "src" }}
+{{ $alt := .Get "alt" | default "" }}
+{{ $sizes := .Get "sizes" | default "(max-width: 768px) 100vw, 800px" }}
+{{ $class := .Get "class" | default "" }}
+
+{{ $image := "" }}
+{{ if strings.HasPrefix $src "/" }}
+  {{ $image = resources.Get (strings.TrimPrefix "/" $src) }}
+{{ else }}
+  {{ $image = resources.Get $src }}
+{{ end }}
+
+{{ if $image }}
+  {{ $large := $image.Resize "1200x webp q85" }}
+  {{ $medium := $image.Resize "800x webp q85" }}
+  {{ $small := $image.Resize "400x webp q80" }}
+  {{ $largejpeg := $image.Resize "1200x jpeg q85" }}
+  {{ $mediumjpeg := $image.Resize "800x jpeg q85" }}
+  {{ $smalljpeg := $image.Resize "400x jpeg q80" }}
+  
+  <picture{{ with $class }} class="{{ . }}"{{ end }}>
+    <source 
+      srcset="{{ $small.RelPermalink }} 400w, {{ $medium.RelPermalink }} 800w, {{ $large.RelPermalink }} 1200w"
+      sizes="{{ $sizes }}"
+      type="image/webp"
+    >
+    <img 
+      src="{{ $mediumjpeg.RelPermalink }}"
+      srcset="{{ $smalljpeg.RelPermalink }} 400w, {{ $mediumjpeg.RelPermalink }} 800w, {{ $largejpeg.RelPermalink }} 1200w"
+      sizes="{{ $sizes }}"
+      alt="{{ $alt }}"
+      loading="lazy"
+    >
+  </picture>
+{{ else }}
+  <img 
+    src="/images/placeholder.jpg" 
+    alt="{{ $alt }}"
+    {{ with $class }}class="{{ . }}"{{ end }}
+    loading="lazy"
+  >
+{{ end }}
