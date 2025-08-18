@@ -1,0 +1,263 @@
+# デプロイメント監視とエラー通知ワークフロー
+name: Deployment Monitor
+
+on:
+    workflow_run:
+        workflows: ["Deploy Hugo site to Pages"]
+        types:
+            - completed
+
+permissions:
+    issues: write
+    contents: read
+
+jobs:
+    monitor-deployment:
+        runs-on: ubuntu-latest
+        if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+        steps:
+            - name: リポジトリのチェックアウト
+              uses: actions/checkout@v4
+
+            - name: デプロイ失敗の詳細取得
+              id: get-failure-info
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const workflowRun = context.payload.workflow_run;
+
+                      // ワークフロー実行の詳細を取得
+                      const { data: jobs } = await github.rest.actions.listJobsForWorkflowRun({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          run_id: workflowRun.id
+                      });
+
+                      const failedJobs = jobs.jobs.filter(job => job.conclusion === 'failure');
+
+                      let failureDetails = '';
+                      for (const job of failedJobs) {
+                          failureDetails += `### ❌ ${job.name}\n`;
+                          failureDetails += `**開始時刻**: ${job.started_at}\n`;
+                          failureDetails += `**終了時刻**: ${job.completed_at}\n`;
+                          failureDetails += `**ログURL**: ${job.html_url}\n\n`;
+                          
+                          // 失敗したステップの詳細
+                          const failedSteps = job.steps.filter(step => step.conclusion === 'failure');
+                          if (failedSteps.length > 0) {
+                              failureDetails += '**失敗したステップ**:\n';
+                              for (const step of failedSteps) {
+                                  failureDetails += `- ${step.name}\n`;
+                              }
+                              failureDetails += '\n';
+                          }
+                      }
+
+                      core.setOutput('failure_details', failureDetails);
+                      core.setOutput('commit_sha', workflowRun.head_sha);
+                      core.setOutput('commit_message', workflowRun.head_commit.message);
+                      core.setOutput('actor', workflowRun.actor.login);
+                      core.setOutput('workflow_url', workflowRun.html_url);
+
+            - name: 既存のデプロイエラーIssueを検索
+              id: find-existing-issue
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const { data: issues } = await github.rest.issues.listForRepo({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          labels: 'deployment-error',
+                          state: 'open'
+                      });
+
+                      const existingIssue = issues.find(issue => 
+                          issue.title.includes('デプロイメントエラー')
+                      );
+
+                      if (existingIssue) {
+                          core.setOutput('issue_number', existingIssue.number);
+                          return existingIssue.number;
+                      }
+                      return null;
+
+            - name: デプロイエラーIssueの作成または更新
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const failureDetails = `${{ steps.get-failure-info.outputs.failure_details }}`;
+                      const commitSha = `${{ steps.get-failure-info.outputs.commit_sha }}`;
+                      const commitMessage = `${{ steps.get-failure-info.outputs.commit_message }}`;
+                      const actor = `${{ steps.get-failure-info.outputs.actor }}`;
+                      const workflowUrl = `${{ steps.get-failure-info.outputs.workflow_url }}`;
+                      const existingIssueNumber = `${{ steps.find-existing-issue.outputs.issue_number }}`;
+
+                      const issueBody = `## 🚨 デプロイメントエラーが発生しました
+
+                      **発生時刻**: ${new Date().toISOString()}
+                      **コミット**: ${commitSha.substring(0, 7)}
+                      **コミットメッセージ**: ${commitMessage}
+                      **実行者**: @${actor}
+                      **ワークフロー実行**: ${workflowUrl}
+
+                      ### エラー詳細
+                      ${failureDetails}
+
+                      ### 推奨対処法
+
+                      #### 1. よくあるエラーと解決方法
+
+                      **Hugoビルドエラー**:
+                      - Markdown構文エラー → コンテンツファイルの構文確認
+                      - 存在しない画像参照 → 画像パスの確認
+                      - Front Matter構文エラー → YAMLフォーマットの確認
+
+                      **GitHub Pages デプロイエラー**:
+                      - 権限不足 → リポジトリ設定の確認
+                      - Pages設定 → Settings > Pages で GitHub Actions が選択されているか確認
+
+                      **依存関係エラー**:
+                      - Node.js/npm エラー → package.json と package-lock.json の確認
+                      - Hugo バージョン → ワークフローのHugo バージョン確認
+
+                      #### 2. 緊急対応
+
+                      **即座にロールバックが必要な場合**:
+                      1. [ロールバックワークフロー](../../actions/workflows/rollback.yml) を手動実行
+                      2. 直前の正常なコミットSHAを指定
+                      3. ロールバック理由を記入
+
+                      **手動でのローカル確認**:
+                      \`\`\`bash
+                      # ローカルでビルドテスト
+                      hugo --gc --minify
+
+                      # ローカルサーバーで確認
+                      hugo server -D
+                      \`\`\`
+
+                      #### 3. 根本原因の調査
+
+                      - [ ] エラーログの詳細確認
+                      - [ ] 問題のあるコミットの特定
+                      - [ ] ローカル環境での再現
+                      - [ ] 修正とテスト
+
+                      ### チェックリスト
+
+                      - [ ] エラーの原因を特定
+                      - [ ] 修正を実装
+                      - [ ] ローカルでテスト
+                      - [ ] 修正をデプロイ
+                      - [ ] サイトの動作確認
+
+                      ---
+
+                      このIssueは自動生成されました。問題が解決したら手動でクローズしてください。`;
+
+                      if (existingIssueNumber) {
+                          // 既存のIssueにコメント追加
+                          await github.rest.issues.createComment({
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              issue_number: parseInt(existingIssueNumber),
+                              body: `## 🔄 新しいデプロイエラーが発生
+                              
+                              **発生時刻**: ${new Date().toISOString()}
+                              **コミット**: ${commitSha.substring(0, 7)}
+                              **実行者**: @${actor}
+                              **ワークフロー**: ${workflowUrl}
+                              
+                              ${failureDetails}`
+                          });
+                      } else {
+                          // 新しいIssueを作成
+                          await github.rest.issues.create({
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              title: `🚨 デプロイメントエラー: ${commitMessage.substring(0, 50)}...`,
+                              body: issueBody,
+                              labels: ['bug', 'deployment-error', 'high-priority']
+                          });
+                      }
+
+            - name: Slack通知（オプション）
+              if: env.SLACK_WEBHOOK_URL != ''
+              env:
+                  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+              run: |
+                  curl -X POST -H 'Content-type: application/json' \
+                    --data '{
+                      "text": "🚨 GitHub Pages デプロイメントエラー",
+                      "blocks": [
+                        {
+                          "type": "section",
+                          "text": {
+                            "type": "mrkdwn",
+                            "text": "*GitHub Pages デプロイメントが失敗しました*\n\n*リポジトリ*: ${{ github.repository }}\n*コミット*: `${{ steps.get-failure-info.outputs.commit_sha }}`\n*実行者*: ${{ steps.get-failure-info.outputs.actor }}"
+                          }
+                        },
+                        {
+                          "type": "actions",
+                          "elements": [
+                            {
+                              "type": "button",
+                              "text": {
+                                "type": "plain_text",
+                                "text": "ワークフロー確認"
+                              },
+                              "url": "${{ steps.get-failure-info.outputs.workflow_url }}"
+                            },
+                            {
+                              "type": "button",
+                              "text": {
+                                "type": "plain_text",
+                                "text": "ロールバック実行"
+                              },
+                              "url": "https://github.com/${{ github.repository }}/actions/workflows/rollback.yml"
+                            }
+                          ]
+                        }
+                      ]
+                    }' \
+                    $SLACK_WEBHOOK_URL
+
+    # デプロイ成功時の通知（オプション）
+    notify-success:
+        runs-on: ubuntu-latest
+        if: ${{ github.event.workflow_run.conclusion == 'success' }}
+        steps:
+            - name: デプロイ成功の記録
+              run: |
+                  echo "::notice::✅ デプロイメントが正常に完了しました"
+                  echo "::notice::コミット: ${{ github.event.workflow_run.head_sha }}"
+                  echo "::notice::実行者: ${{ github.event.workflow_run.actor.login }}"
+
+            - name: 既存のデプロイエラーIssueをクローズ
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const { data: issues } = await github.rest.issues.listForRepo({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          labels: 'deployment-error',
+                          state: 'open'
+                      });
+
+                      for (const issue of issues) {
+                          if (issue.title.includes('デプロイメントエラー')) {
+                              await github.rest.issues.createComment({
+                                  owner: context.repo.owner,
+                                  repo: context.repo.repo,
+                                  issue_number: issue.number,
+                                  body: `✅ **デプロイメントが正常に完了しました**\n\n**解決時刻**: ${new Date().toISOString()}\n**コミット**: ${context.payload.workflow_run.head_sha.substring(0, 7)}\n\nこのIssueを自動的にクローズします。`
+                              });
+                              
+                              await github.rest.issues.update({
+                                  owner: context.repo.owner,
+                                  repo: context.repo.repo,
+                                  issue_number: issue.number,
+                                  state: 'closed'
+                              });
+                          }
+                      }

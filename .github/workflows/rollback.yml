@@ -1,0 +1,212 @@
+# GitHub Pages ロールバックワークフロー
+name: Rollback GitHub Pages
+
+on:
+    # 手動実行のみ
+    workflow_dispatch:
+        inputs:
+            commit_sha:
+                description: "ロールバック先のコミットSHA（空の場合は直前のコミット）"
+                required: false
+                type: string
+            reason:
+                description: "ロールバックの理由"
+                required: true
+                type: string
+
+# GitHub Pagesへのデプロイ権限を設定
+permissions:
+    contents: read
+    pages: write
+    id-token: write
+    actions: read
+
+# 同時実行を制限
+concurrency:
+    group: "pages-rollback"
+    cancel-in-progress: false
+
+jobs:
+    # ロールバック実行前の確認
+    confirm-rollback:
+        runs-on: ubuntu-latest
+        outputs:
+            target_commit: ${{ steps.determine-commit.outputs.commit }}
+            target_commit_message: ${{ steps.get-commit-info.outputs.message }}
+        steps:
+            - name: リポジトリのチェックアウト
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: ロールバック対象コミットの決定
+              id: determine-commit
+              run: |
+                  if [ -n "${{ github.event.inputs.commit_sha }}" ]; then
+                      TARGET_COMMIT="${{ github.event.inputs.commit_sha }}"
+                  else
+                      # 直前のコミットを取得
+                      TARGET_COMMIT=$(git rev-parse HEAD~1)
+                  fi
+
+                  # コミットが存在するか確認
+                  if ! git cat-file -e "$TARGET_COMMIT^{commit}" 2>/dev/null; then
+                      echo "::error::指定されたコミット $TARGET_COMMIT が見つかりません"
+                      exit 1
+                  fi
+
+                  echo "commit=$TARGET_COMMIT" >> $GITHUB_OUTPUT
+                  echo "::notice::ロールバック対象: $TARGET_COMMIT"
+
+            - name: コミット情報の取得
+              id: get-commit-info
+              run: |
+                  COMMIT_MESSAGE=$(git log -1 --pretty=format:"%s" ${{ steps.determine-commit.outputs.commit }})
+                  echo "message=$COMMIT_MESSAGE" >> $GITHUB_OUTPUT
+                  echo "::notice::コミットメッセージ: $COMMIT_MESSAGE"
+
+            - name: ロールバック情報の表示
+              run: |
+                  echo "## 🔄 ロールバック実行情報"
+                  echo "**対象コミット**: ${{ steps.determine-commit.outputs.commit }}"
+                  echo "**コミットメッセージ**: ${{ steps.get-commit-info.outputs.message }}"
+                  echo "**理由**: ${{ github.event.inputs.reason }}"
+                  echo "**実行者**: ${{ github.actor }}"
+                  echo "**実行時刻**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+
+    # ロールバック用ビルド
+    rollback-build:
+        runs-on: ubuntu-latest
+        needs: confirm-rollback
+        env:
+            HUGO_VERSION: 0.148.2
+        steps:
+            - name: Hugoのインストール
+              run: |
+                  set -e
+                  wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb \
+                  && sudo dpkg -i ${{ runner.temp }}/hugo.deb
+
+            - name: 指定コミットのチェックアウト
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ needs.confirm-rollback.outputs.target_commit }}
+                  submodules: recursive
+                  fetch-depth: 0
+
+            - name: GitHub Pagesの設定
+              id: pages
+              uses: actions/configure-pages@v4
+
+            - name: Node.jsの設定
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "18"
+                  cache: "npm"
+                  cache-dependency-path: "**/package-lock.json"
+
+            - name: 依存関係のインストール
+              run: |
+                  if [ -f package-lock.json ]; then
+                      npm ci
+                  fi
+
+            - name: ロールバック用サイトビルド
+              env:
+                  HUGO_ENVIRONMENT: production
+                  HUGO_ENV: production
+              run: |
+                  set -e
+                  echo "::notice::ロールバック用サイトをビルド中..."
+                  hugo \
+                    --gc \
+                    --minify \
+                    --baseURL "${{ steps.pages.outputs.base_url }}/"
+
+            - name: ビルド成果物をアップロード
+              uses: actions/upload-pages-artifact@v3
+              with:
+                  path: ./public
+
+            - name: ロールバック準備完了通知
+              run: |
+                  echo "::notice::ロールバック用ビルドが完了しました"
+                  echo "::notice::対象コミット: ${{ needs.confirm-rollback.outputs.target_commit }}"
+
+    # ロールバック実行
+    rollback-deploy:
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+        runs-on: ubuntu-latest
+        needs: [confirm-rollback, rollback-build]
+        steps:
+            - name: ロールバック実行
+              id: deployment
+              uses: actions/deploy-pages@v4
+
+            - name: ロールバック成功通知
+              if: success()
+              run: |
+                  echo "::notice::🎉 ロールバックが正常に完了しました"
+                  echo "::notice::サイトURL: ${{ steps.deployment.outputs.page_url }}"
+                  echo "::notice::ロールバック先: ${{ needs.confirm-rollback.outputs.target_commit }}"
+                  echo "::notice::理由: ${{ github.event.inputs.reason }}"
+
+            - name: ロールバック失敗通知
+              if: failure()
+              run: |
+                  echo "::error::❌ ロールバックが失敗しました"
+                  echo "::error::対象コミット: ${{ needs.confirm-rollback.outputs.target_commit }}"
+                  echo "::notice::対処法:"
+                  echo "::notice::1. 指定したコミットSHAが正しいか確認"
+                  echo "::notice::2. そのコミットでサイトが正常にビルドできるか確認"
+                  echo "::notice::3. GitHub Pages設定を確認"
+
+    # ロールバック後の通知
+    post-rollback:
+        runs-on: ubuntu-latest
+        needs: [confirm-rollback, rollback-deploy]
+        if: always()
+        steps:
+            - name: ロールバック結果の記録
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const fs = require('fs');
+                      const rollbackInfo = {
+                          timestamp: new Date().toISOString(),
+                          actor: '${{ github.actor }}',
+                          reason: '${{ github.event.inputs.reason }}',
+                          target_commit: '${{ needs.confirm-rollback.outputs.target_commit }}',
+                          target_commit_message: '${{ needs.confirm-rollback.outputs.target_commit_message }}',
+                          success: '${{ needs.rollback-deploy.result }}' === 'success',
+                          workflow_run_id: '${{ github.run_id }}'
+                      };
+
+                      console.log('ロールバック情報:', JSON.stringify(rollbackInfo, null, 2));
+
+                      // Issue作成（失敗時のみ）
+                      if (!rollbackInfo.success) {
+                          await github.rest.issues.create({
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              title: `🚨 ロールバック失敗: ${rollbackInfo.reason}`,
+                              body: `## ロールバック失敗レポート
+
+                      **実行時刻**: ${rollbackInfo.timestamp}
+                      **実行者**: ${rollbackInfo.actor}
+                      **理由**: ${rollbackInfo.reason}
+                      **対象コミット**: ${rollbackInfo.target_commit}
+                      **ワークフロー実行**: https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${rollbackInfo.workflow_run_id}
+
+                      ### 対処が必要な項目
+                      - [ ] エラーログの確認
+                      - [ ] 対象コミットの検証
+                      - [ ] 手動でのロールバック実行
+                      - [ ] GitHub Pages設定の確認
+
+                      このIssueは自動生成されました。`,
+                              labels: ['bug', 'deployment', 'rollback']
+                          });
+                      }

@@ -170,4 +170,4 @@ assets:
   disableFingerprinting: false
 
 # GitHub Pages設定
-publishDir: "docs"
+# publishDir: "public"  # デフォルトのpublicディレクトリを使用

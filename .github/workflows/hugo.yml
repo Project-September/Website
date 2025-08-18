@@ -7,6 +7,11 @@ on:
         branches:
             - main
 
+    # プルリクエスト時のプレビュー機能
+    pull_request:
+        branches:
+            - main
+
     # 手動実行を許可
     workflow_dispatch:
 
@@ -35,13 +40,17 @@ jobs:
         steps:
             - name: Hugoのインストール
               run: |
+                  set -e
                   wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb \
                   && sudo dpkg -i ${{ runner.temp }}/hugo.deb
+              continue-on-error: false
 
             - name: Gitのインストール
               run: |
+                  set -e
                   sudo apt-get update
                   sudo apt-get install -y git
+              continue-on-error: false
 
             - name: リポジトリのチェックアウト
               uses: actions/checkout@v4
@@ -52,6 +61,7 @@ jobs:
             - name: GitHub Pagesの設定
               id: pages
               uses: actions/configure-pages@v4
+              if: github.event_name != 'pull_request'
 
             - name: Node.jsの設定（必要に応じて）
               uses: actions/setup-node@v4
@@ -60,24 +70,72 @@ jobs:
                   cache: "npm"
                   cache-dependency-path: "**/package-lock.json"
 
-            - name: Hugoでサイトをビルド
+            - name: 依存関係のインストール
+              run: |
+                  if [ -f package-lock.json ]; then
+                      npm ci
+                  fi
+              continue-on-error: false
+
+            - name: コンテンツ検証
+              run: |
+                  set -e
+                  if [ -f scripts/validate-content.sh ]; then
+                      chmod +x scripts/validate-content.sh
+                      ./scripts/validate-content.sh
+                  fi
+              continue-on-error: false
+
+            - name: Hugoでサイトをビルド（本番環境）
+              if: github.event_name != 'pull_request'
               env:
-                  # 本番環境用の設定
                   HUGO_ENVIRONMENT: production
                   HUGO_ENV: production
               run: |
+                  set -e
                   hugo \
                     --gc \
                     --minify \
                     --baseURL "${{ steps.pages.outputs.base_url }}/"
+              continue-on-error: false
 
-            - name: ビルド成果物をアップロード
+            - name: Hugoでサイトをビルド（プレビュー）
+              if: github.event_name == 'pull_request'
+              env:
+                  HUGO_ENVIRONMENT: preview
+                  HUGO_ENV: preview
+              run: |
+                  set -e
+                  hugo \
+                    --gc \
+                    --minify \
+                    --baseURL "https://preview-${{ github.event.number }}.github.io/" \
+                    --buildDrafts
+              continue-on-error: false
+
+            - name: ビルド成果物をアップロード（本番環境）
+              if: github.event_name != 'pull_request'
               uses: actions/upload-pages-artifact@v3
               with:
                   path: ./public
 
-    # デプロイジョブ
+            - name: ビルド成果物をアップロード（プレビュー）
+              if: github.event_name == 'pull_request'
+              uses: actions/upload-artifact@v4
+              with:
+                  name: preview-site-${{ github.event.number }}
+                  path: ./public
+                  retention-days: 7
+
+            - name: ビルドエラー通知
+              if: failure()
+              run: |
+                  echo "::error::Hugo ビルドが失敗しました。ログを確認してください。"
+                  echo "::notice::よくあるエラー: 1) Markdown構文エラー 2) 存在しない画像への参照 3) Front Matter構文エラー"
+
+    # デプロイジョブ（本番環境のみ）
     deploy:
+        if: github.event_name != 'pull_request'
         environment:
             name: github-pages
             url: ${{ steps.deployment.outputs.page_url }}
@@ -87,3 +145,74 @@ jobs:
             - name: GitHub Pagesにデプロイ
               id: deployment
               uses: actions/deploy-pages@v4
+              continue-on-error: false
+
+            - name: デプロイ成功通知
+              if: success()
+              run: |
+                  echo "::notice::サイトが正常にデプロイされました: ${{ steps.deployment.outputs.page_url }}"
+
+            - name: デプロイエラー通知
+              if: failure()
+              run: |
+                  echo "::error::GitHub Pagesへのデプロイが失敗しました。"
+                  echo "::notice::対処法: 1) リポジトリ設定でPages機能が有効か確認 2) ワークフロー権限を確認 3) 前回のデプロイメントをロールバック"
+
+    # プルリクエストプレビューコメント
+    preview-comment:
+        if: github.event_name == 'pull_request'
+        runs-on: ubuntu-latest
+        needs: build
+        permissions:
+            pull-requests: write
+        steps:
+            - name: プレビューリンクをコメント
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const { data: comments } = await github.rest.issues.listComments({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          issue_number: context.issue.number,
+                      });
+
+                      const botComment = comments.find(comment => 
+                          comment.user.type === 'Bot' && comment.body.includes('プレビュー')
+                      );
+
+                      const commentBody = `## 🚀 プレビュー準備完了
+
+                      このプルリクエストのプレビューが生成されました。
+
+                      📦 **アーティファクト**: \`preview-site-${{ github.event.number }}\`
+                      ⏰ **保持期間**: 7日間
+
+                      ### プレビューの確認方法
+                      1. 上記のアーティファクトをダウンロード
+                      2. ローカルでHTTPサーバーを起動して確認
+
+                      \`\`\`bash
+                      # ダウンロードしたファイルを展開後
+                      cd public
+                      python -m http.server 8000
+                      # http://localhost:8000 でアクセス
+                      \`\`\`
+
+                      ---
+                      *このコメントは自動生成されました*`;
+
+                      if (botComment) {
+                          await github.rest.issues.updateComment({
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              comment_id: botComment.id,
+                              body: commentBody
+                          });
+                      } else {
+                          await github.rest.issues.createComment({
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              issue_number: context.issue.number,
+                              body: commentBody
+                          });
+                      }
