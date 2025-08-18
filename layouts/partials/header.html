@@ -13,11 +13,13 @@
             
             <!-- Desktop Navigation -->
             <nav class="main-navigation desktop-nav" role="navigation" aria-label="メインナビゲーション">
-                <ul class="nav-menu">
+                <ul class="nav-menu" role="menubar">
                     {{ range .Site.Menus.main }}
-                    <li class="nav-item">
+                    <li class="nav-item" role="none">
                         <a href="{{ .URL | relURL }}" 
                            class="nav-link{{ if $.IsMenuCurrent "main" . }} current{{ end }}{{ if $.HasMenuCurrent "main" . }} current-parent{{ end }}"
+                           role="menuitem"
+                           {{ if $.IsMenuCurrent "main" . }}aria-current="page"{{ end }}
                            {{ if .Pre }}aria-label="{{ .Pre }}"{{ end }}>
                             {{ .Name }}
                         </a>
@@ -32,9 +34,10 @@
                     aria-controls="mobile-menu" 
                     aria-expanded="false"
                     aria-label="メニューを開く">
-                <span class="hamburger-line"></span>
-                <span class="hamburger-line"></span>
-                <span class="hamburger-line"></span>
+                <span class="hamburger-line" aria-hidden="true"></span>
+                <span class="hamburger-line" aria-hidden="true"></span>
+                <span class="hamburger-line" aria-hidden="true"></span>
+                <span class="sr-only">メニュー</span>
             </button>
         </div>
         
@@ -42,12 +45,15 @@
         <nav class="mobile-navigation mobile-menu" 
              id="mobile-menu" 
              role="navigation" 
-             aria-label="モバイルナビゲーション">
-            <ul class="mobile-nav-menu">
+             aria-label="モバイルナビゲーション"
+             aria-hidden="true">
+            <ul class="mobile-nav-menu" role="menubar">
                 {{ range .Site.Menus.main }}
-                <li class="mobile-nav-item">
+                <li class="mobile-nav-item" role="none">
                     <a href="{{ .URL | relURL }}" 
-                       class="mobile-nav-link{{ if $.IsMenuCurrent "main" . }} current{{ end }}{{ if $.HasMenuCurrent "main" . }} current-parent{{ end }}">
+                       class="mobile-nav-link{{ if $.IsMenuCurrent "main" . }} current{{ end }}{{ if $.HasMenuCurrent "main" . }} current-parent{{ end }}"
+                       role="menuitem"
+                       {{ if $.IsMenuCurrent "main" . }}aria-current="page"{{ end }}>
                         {{ .Name }}
                     </a>
                 </li>

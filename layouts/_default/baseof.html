@@ -1,16 +1,27 @@
 <!DOCTYPE html>
-<html lang="{{ .Site.LanguageCode | default "ja" }}">
+<html lang="{{ .Site.LanguageCode | default "ja" }}" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     
-    {{ partial "meta.html" . }}
+    {{/* Generate page title */}}
+    {{- $title := "" -}}
+    {{- if .IsHome -}}
+      {{- $title = .Site.Title -}}
+    {{- else if eq .Section "game" -}}
+      {{- $title = printf "%s | %s" .Site.Params.game.title .Site.Title -}}
+    {{- else -}}
+      {{- $title = printf "%s | %s" .Title .Site.Title -}}
+    {{- end -}}
     
-    <title>{{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }} | {{ .Site.Title }}{{ end }}</title>
+    <title>{{ $title }}</title>
+    
+    {{ partial "meta.html" . }}
     
     <!-- CSS -->
     <link rel="stylesheet" href="{{ "css/main.css" | relURL }}">
+    <link rel="stylesheet" href="{{ "css/accessibility.css" | relURL }}">
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{{ "images/favicon.ico" | relURL }}">
@@ -18,9 +29,12 @@
     {{ block "head" . }}{{ end }}
 </head>
 <body class="{{ if .IsHome }}home{{ else }}{{ .Type }}{{ end }}">
+    <!-- Skip to main content link -->
+    <a href="#main" class="skip-link sr-only-focusable">メインコンテンツにスキップ</a>
+    
     {{ partial "header.html" . }}
     
-    <main id="main" role="main">
+    <main id="main" role="main" tabindex="-1">
         {{ block "main" . }}{{ end }}
     </main>
     

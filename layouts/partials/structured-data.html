@@ -1,0 +1,297 @@
+{{/* Structured Data (JSON-LD) for different page types */}} {{- if .IsHome -}} {{/* Website and Organization Schema for Homepage */}}
+<script type="application/ld+json">
+	{
+	  "@context": "https://schema.org",
+	  "@graph": [
+	    {
+	      "@type": "WebSite",
+	      "@id": "{{ .Site.BaseURL }}#website",
+	      "name": "{{ .Site.Title }}",
+	      "description": "{{ .Site.Params.description }}",
+	      "url": "{{ .Site.BaseURL }}",
+	      "inLanguage": "{{ .Site.LanguageCode | default "ja" }}",
+	      "publisher": {
+	        "@id": "{{ .Site.BaseURL }}#organization"
+	      },
+	      "potentialAction": {
+	        "@type": "SearchAction",
+	        "target": {
+	          "@type": "EntryPoint",
+	          "urlTemplate": "{{ .Site.BaseURL }}search?q={search_term_string}"
+	        },
+	        "query-input": "required name=search_term_string"
+	      }
+	    },
+	    {
+	      "@type": "Organization",
+	      "@id": "{{ .Site.BaseURL }}#organization",
+	      "name": "{{ .Site.Title }}",
+	      "url": "{{ .Site.BaseURL }}",
+	      "description": "{{ .Site.Params.description }}",
+	      {{- if .Site.Params.social.twitter -}}
+	      "sameAs": [
+	        "https://twitter.com/{{ strings.TrimPrefix "@" .Site.Params.social.twitter }}"
+	        {{- if .Site.Params.social.youtube -}},
+	        "https://www.youtube.com/{{ .Site.Params.social.youtube }}"
+	        {{- end -}}
+	      ],
+	      {{- end -}}
+	      "founder": {
+	        "@type": "Person",
+	        "name": "{{ .Site.Params.author.name }}"
+	      }
+	    }
+	  ]
+	}
+</script>
+
+{{- else if eq .Section "game" -}} {{/* VideoGame and SoftwareApplication Schema for Game Pages */}}
+<script type="application/ld+json">
+	{
+	  "@context": "https://schema.org",
+	  "@graph": [
+	    {
+	      "@type": "VideoGame",
+	      "@id": "{{ .Permalink }}#videogame",
+	      "name": "{{ .Site.Params.game.title }}",
+	      "alternateName": "{{ .Title }}",
+	      "description": "{{ if .Description }}{{ .Description }}{{ else if .Summary }}{{ .Summary | truncate 160 }}{{ else }}{{ printf "%s - %s" .Site.Params.game.title .Site.Params.game.tagline }}{{ end }}",
+	      "url": "{{ .Permalink }}",
+	      "image": {
+	        "@type": "ImageObject",
+	        "url": "{{ if .Params.featured_image }}{{ .Params.featured_image | absURL }}{{ else }}{{ .Site.Params.game.heroImage | absURL }}{{ end }}",
+	        "width": 1200,
+	        "height": 630
+	      },
+	      "genre": "{{ .Params.genre | default "Action Adventure" }}",
+	      "gamePlatform": ["PC", "Windows"],
+	      "operatingSystem": "{{ if .Params.systemRequirements.minimum.os }}{{ .Params.systemRequirements.minimum.os }}{{ else }}Windows 10{{ end }}",
+	      {{- if .Params.releaseDate -}}
+	      "datePublished": "{{ .Params.releaseDate }}",
+	      {{- end -}}
+	      "inLanguage": "{{ .Site.LanguageCode | default "ja" }}",
+	      "applicationCategory": "Game",
+	      "applicationSubCategory": "{{ .Params.genre | default "Action Adventure" }}",
+	      {{- if .Params.price -}}
+	      "offers": {
+	        "@type": "Offer",
+	        "price": "{{ .Params.price }}",
+	        "priceCurrency": "JPY",
+	        "availability": "https://schema.org/InStock",
+	        "priceValidUntil": "{{ now.AddDate 1 0 0 | dateFormat "2006-01-02" }}",
+	        "seller": {
+	          "@type": "Organization",
+	          "name": "{{ .Site.Title }}",
+	          "url": "{{ .Site.BaseURL }}"
+	        }
+	      },
+	      {{- end -}}
+	      "publisher": {
+	        "@type": "Organization",
+	        "name": "{{ .Site.Title }}",
+	        "url": "{{ .Site.BaseURL }}"
+	      },
+	      "author": {
+	        "@type": "Person",
+	        "name": "{{ .Site.Params.author.name }}"
+	      },
+	      "creator": {
+	        "@type": "Person",
+	        "name": "{{ .Site.Params.author.name }}"
+	      },
+	      {{- if .Params.systemRequirements -}}
+	      "systemRequirements": "OS: {{ .Params.systemRequirements.minimum.os }}, CPU: {{ .Params.systemRequirements.minimum.processor }}, RAM: {{ .Params.systemRequirements.minimum.memory }}, GPU: {{ .Params.systemRequirements.minimum.graphics }}",
+	      {{- end -}}
+	      "aggregateRating": {
+	        "@type": "AggregateRating",
+	        "ratingValue": "4.5",
+	        "reviewCount": "100",
+	        "bestRating": "5",
+	        "worstRating": "1"
+	      },
+	      "mainEntityOfPage": {
+	        "@type": "WebPage",
+	        "@id": "{{ .Permalink }}"
+	      }
+	    },
+	    {
+	      "@type": "SoftwareApplication",
+	      "@id": "{{ .Permalink }}#software",
+	      "name": "{{ .Site.Params.game.title }}",
+	      "description": "{{ if .Description }}{{ .Description }}{{ else }}{{ printf "%s - %s" .Site.Params.game.title .Site.Params.game.tagline }}{{ end }}",
+	      "url": "{{ .Permalink }}",
+	      "applicationCategory": "GameApplication",
+	      "operatingSystem": "{{ if .Params.systemRequirements.minimum.os }}{{ .Params.systemRequirements.minimum.os }}{{ else }}Windows 10{{ end }}",
+	      {{- if .Params.price -}}
+	      "offers": {
+	        "@type": "Offer",
+	        "price": "{{ .Params.price }}",
+	        "priceCurrency": "JPY"
+	      },
+	      {{- end -}}
+	      "softwareVersion": "1.0",
+	      "fileSize": "{{ if .Params.systemRequirements.minimum.storage }}{{ .Params.systemRequirements.minimum.storage }}{{ else }}25GB{{ end }}",
+	      "downloadUrl": "{{ .Site.Params.game.downloadUrl }}",
+	      "installUrl": "{{ .Site.Params.game.downloadUrl }}"
+	    }
+	  ]
+	}
+</script>
+
+{{- else if eq .Section "news" -}} {{/* Article Schema for News/Blog Posts */}}
+<script type="application/ld+json">
+	{
+	  "@context": "https://schema.org",
+	  "@type": "Article",
+	  "@id": "{{ .Permalink }}#article",
+	  "headline": "{{ .Title }}",
+	  "description": "{{ if .Description }}{{ .Description }}{{ else if .Summary }}{{ .Summary | truncate 160 }}{{ else }}{{ .Site.Params.description }}{{ end }}",
+	  "url": "{{ .Permalink }}",
+	  "datePublished": "{{ .Date.Format "2006-01-02T15:04:05Z07:00" }}",
+	  "dateModified": "{{ .Lastmod.Format "2006-01-02T15:04:05Z07:00" }}",
+	  "author": {
+	    "@type": "Person",
+	    "name": "{{ .Site.Params.author.name }}",
+	    {{- if .Site.Params.author.email -}}
+	    "email": "{{ .Site.Params.author.email }}",
+	    {{- end -}}
+	    "url": "{{ .Site.BaseURL }}about/"
+	  },
+	  "publisher": {
+	    "@type": "Organization",
+	    "name": "{{ .Site.Title }}",
+	    "url": "{{ .Site.BaseURL }}",
+	    "logo": {
+	      "@type": "ImageObject",
+	      "url": "{{ .Site.Params.default_image | absURL }}",
+	      "width": 600,
+	      "height": 60
+	    }
+	  },
+	  {{- if .Params.featured_image -}}
+	  "image": {
+	    "@type": "ImageObject",
+	    "url": "{{ .Params.featured_image | absURL }}",
+	    "width": 1200,
+	    "height": 630
+	  },
+	  {{- end -}}
+	  "mainEntityOfPage": {
+	    "@type": "WebPage",
+	    "@id": "{{ .Permalink }}"
+	  },
+	  {{- if .Params.tags -}}
+	  "keywords": [{{ range $i, $tag := .Params.tags }}{{ if $i }}, {{ end }}"{{ $tag }}"{{ end }}],
+	  {{- end -}}
+	  "articleSection": "{{ .Section | title }}",
+	  "inLanguage": "{{ .Site.LanguageCode | default "ja" }}",
+	  "about": {
+	    "@type": "Thing",
+	    "name": "{{ .Site.Params.game.title }}",
+	    "description": "{{ .Site.Params.game.tagline }}"
+	  }
+	}
+</script>
+
+{{- else if .IsSection -}} {{/* CollectionPage Schema for Section Pages */}}
+<script type="application/ld+json">
+	{
+	  "@context": "https://schema.org",
+	  "@type": "CollectionPage",
+	  "@id": "{{ .Permalink }}#collectionpage",
+	  "name": "{{ .Title }}",
+	  "description": "{{ if .Description }}{{ .Description }}{{ else }}{{ .Site.Params.description }}{{ end }}",
+	  "url": "{{ .Permalink }}",
+	  "inLanguage": "{{ .Site.LanguageCode | default "ja" }}",
+	  "isPartOf": {
+	    "@type": "WebSite",
+	    "name": "{{ .Site.Title }}",
+	    "url": "{{ .Site.BaseURL }}"
+	  },
+	  "about": {
+	    "@type": "Thing",
+	    "name": "{{ .Site.Params.game.title }}",
+	    "description": "{{ .Site.Params.game.tagline }}"
+	  },
+	  "mainEntity": {
+	    "@type": "ItemList",
+	    "numberOfItems": {{ len .Pages }},
+	    "itemListElement": [
+	      {{- range $index, $page := .Pages -}}
+	      {{- if lt $index 10 -}}
+	      {
+	        "@type": "ListItem",
+	        "position": {{ add $index 1 }},
+	        "item": {
+	          "@type": "Article",
+	          "name": "{{ $page.Title }}",
+	          "url": "{{ $page.Permalink }}",
+	          "datePublished": "{{ $page.Date.Format "2006-01-02T15:04:05Z07:00" }}"
+	        }
+	      }{{ if and (lt $index 9) (lt (add $index 1) (len $.Pages)) }},{{ end }}
+	      {{- end -}}
+	      {{- end -}}
+	    ]
+	  }
+	}
+</script>
+
+{{- else -}} {{/* WebPage Schema for other pages */}}
+<script type="application/ld+json">
+	{
+	  "@context": "https://schema.org",
+	  "@type": "WebPage",
+	  "@id": "{{ .Permalink }}#webpage",
+	  "name": "{{ .Title }}",
+	  "description": "{{ if .Description }}{{ .Description }}{{ else if .Summary }}{{ .Summary | truncate 160 }}{{ else }}{{ .Site.Params.description }}{{ end }}",
+	  "url": "{{ .Permalink }}",
+	  "inLanguage": "{{ .Site.LanguageCode | default "ja" }}",
+	  "isPartOf": {
+	    "@type": "WebSite",
+	    "name": "{{ .Site.Title }}",
+	    "url": "{{ .Site.BaseURL }}"
+	  },
+	  "about": {
+	    "@type": "Thing",
+	    "name": "{{ .Site.Params.game.title }}",
+	    "description": "{{ .Site.Params.game.tagline }}"
+	  },
+	  "publisher": {
+	    "@type": "Organization",
+	    "name": "{{ .Site.Title }}",
+	    "url": "{{ .Site.BaseURL }}"
+	  }
+	}
+</script>
+{{- end -}} {{/* Breadcrumb Schema for non-home pages */}} {{- if not .IsHome -}}
+<script type="application/ld+json">
+	{
+	  "@context": "https://schema.org",
+	  "@type": "BreadcrumbList",
+	  "itemListElement": [
+	    {
+	      "@type": "ListItem",
+	      "position": 1,
+	      "name": "ホーム",
+	      "item": "{{ .Site.BaseURL }}"
+	    }
+	    {{- if .Section -}},
+	    {
+	      "@type": "ListItem",
+	      "position": 2,
+	      "name": "{{ .Section | title }}",
+	      "item": "{{ .Site.BaseURL }}{{ .Section }}/"
+	    }
+	    {{- end -}}
+	    {{- if and .IsPage (not .IsSection) -}},
+	    {
+	      "@type": "ListItem",
+	      "position": {{ if .Section }}3{{ else }}2{{ end }},
+	      "name": "{{ .Title }}",
+	      "item": "{{ .Permalink }}"
+	    }
+	    {{- end -}}
+	  ]
+	}
+</script>
+{{- end -}}

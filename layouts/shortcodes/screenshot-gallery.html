@@ -1,11 +1,12 @@
-{{/* Screenshot Gallery with Lazy Loading and Lightbox */}} {{- $images := .Site.Params.game.screenshots -}} {{- $class := .Get "class" | default "screenshots-grid" -}}
+{{/* Screenshot Gallery with Lazy Loading and Lightbox - Accessibility Enhanced */}} {{- $images := .Site.Params.game.screenshots -}} {{- $class := .Get "class" | default "screenshots-grid" -}}
 
-<div class="{{ $class }}">
+<div class="{{ $class }}" role="region" aria-label="スクリーンショットギャラリー">
+	<h3 class="sr-only">ゲームスクリーンショット</h3>
 	{{- range $index, $screenshot := $images -}} {{- $image := resources.Get $screenshot.url -}} {{- if $image -}} {{/* Generate optimized versions */}} {{- $thumb := $image.Resize "400x300 webp q85"
 	-}} {{- $medium := $image.Resize "800x600 webp q85" -}} {{- $large := $image.Resize "1200x900 webp q85" -}} {{/* JPEG fallbacks */}} {{- $thumbJpg := $image.Resize "400x300 jpg q80" -}} {{-
 	$mediumJpg := $image.Resize "800x600 jpg q80" -}} {{- $largeJpg := $image.Resize "1200x900 jpg q80" -}} {{/* Placeholder */}} {{- $placeholder := $image.Resize "20x15 jpg q20" -}}
 
-	<div class="screenshot-item" data-index="{{ $index }}">
+	<div class="screenshot-item" data-index="{{ $index }}" role="button" tabindex="0" aria-label="スクリーンショット {{ add $index 1 }}: {{ $screenshot.caption }}。クリックまたはEnterキーで拡大表示">
 		<picture>
 			{{/* WebP sources */}}
 			<source
@@ -34,16 +35,16 @@
 			/>
 		</picture>
 
-		<div class="screenshot-overlay">
+		<div class="screenshot-overlay" aria-hidden="true">
 			<h4 class="screenshot-title">{{ $screenshot.caption }}</h4>
 			<p class="screenshot-description">クリックして拡大表示</p>
 		</div>
 	</div>
 	{{- else -}} {{/* Fallback for missing images */}}
-	<div class="screenshot-item" data-index="{{ $index }}">
+	<div class="screenshot-item" data-index="{{ $index }}" role="button" tabindex="0" aria-label="スクリーンショット {{ add $index 1 }}: {{ $screenshot.caption }}。クリックまたはEnterキーで拡大表示">
 		<img src="/images/placeholder.jpg" alt="{{ $screenshot.alt | default "スクリーンショット" }}" data-caption="{{ $screenshot.caption }}" class="screenshot-image" width="400" height="300">
 
-		<div class="screenshot-overlay">
+		<div class="screenshot-overlay" aria-hidden="true">
 			<h4 class="screenshot-title">{{ $screenshot.caption }}</h4>
 			<p class="screenshot-description">クリックして拡大表示</p>
 		</div>
@@ -51,14 +52,25 @@
 	{{- end -}} {{- end -}}
 </div>
 
-{{/* Lightbox Modal */}}
-<div id="lightbox-modal" class="lightbox" style="display: none">
-	<div class="lightbox-overlay"></div>
+{{/* Lightbox Modal - Accessibility Enhanced */}}
+<div id="lightbox-modal" class="lightbox-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="lightbox-caption" aria-describedby="lightbox-counter">
 	<div class="lightbox-content">
-		<button class="lightbox-close" aria-label="閉じる">&times;</button>
-		<img id="lightbox-image" class="lightbox-image" alt="" />
-		<div id="lightbox-caption" class="lightbox-caption"></div>
-		<button id="lightbox-prev" class="lightbox-prev" aria-label="前の画像">&#8249;</button>
-		<button id="lightbox-next" class="lightbox-next" aria-label="次の画像">&#8250;</button>
+		<button class="lightbox-close" type="button" aria-label="ライトボックスを閉じる">
+			<span aria-hidden="true">&times;</span>
+		</button>
+
+		<img id="lightbox-image" class="lightbox-image" alt="" role="img" />
+
+		<div id="lightbox-caption" class="lightbox-caption" role="heading" aria-level="2"></div>
+
+		<div id="lightbox-counter" class="lightbox-counter sr-only" aria-live="polite"></div>
+
+		<button id="lightbox-prev" class="lightbox-controls lightbox-prev" type="button" aria-label="前の画像">
+			<span aria-hidden="true">&#8249;</span>
+		</button>
+
+		<button id="lightbox-next" class="lightbox-controls lightbox-next" type="button" aria-label="次の画像">
+			<span aria-hidden="true">&#8250;</span>
+		</button>
 	</div>
 </div>

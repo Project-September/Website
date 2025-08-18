@@ -79,24 +79,69 @@
 		lightboxCaption.textContent = captionText;
 
 		lightboxModal.classList.add("active");
+		lightboxModal.setAttribute("aria-hidden", "false");
 		document.body.style.overflow = "hidden";
 
-		// Update navigation visibility
+		// Focus management
+		const closeBtn = lightboxModal.querySelector(".lightbox-close");
+		if (closeBtn) {
+			closeBtn.focus();
+		}
+
+		// Update navigation visibility and ARIA attributes
 		const prevBtn = document.getElementById("lightbox-prev");
 		const nextBtn = document.getElementById("lightbox-next");
 
 		if (screenshots.length <= 1) {
-			if (prevBtn) prevBtn.style.display = "none";
-			if (nextBtn) nextBtn.style.display = "none";
+			if (prevBtn) {
+				prevBtn.style.display = "none";
+				prevBtn.setAttribute("aria-hidden", "true");
+			}
+			if (nextBtn) {
+				nextBtn.style.display = "none";
+				nextBtn.setAttribute("aria-hidden", "true");
+			}
 		} else {
-			if (prevBtn) prevBtn.style.display = "block";
-			if (nextBtn) nextBtn.style.display = "block";
+			if (prevBtn) {
+				prevBtn.style.display = "block";
+				prevBtn.setAttribute("aria-hidden", "false");
+				prevBtn.setAttribute("aria-label", `前の画像 (${currentIndex + 1}/${screenshots.length})`);
+			}
+			if (nextBtn) {
+				nextBtn.style.display = "block";
+				nextBtn.setAttribute("aria-hidden", "false");
+				nextBtn.setAttribute("aria-label", `次の画像 (${currentIndex + 1}/${screenshots.length})`);
+			}
+		}
+
+		// Update image counter for screen readers
+		lightboxImage.setAttribute("aria-describedby", "lightbox-counter");
+		const counter = document.getElementById("lightbox-counter");
+		if (counter) {
+			counter.textContent = `画像 ${currentIndex + 1} / ${screenshots.length}`;
+		}
+
+		// Announce to screen readers
+		if (window.announceToScreenReader) {
+			window.announceToScreenReader(`ライトボックスを開きました。${captionText}。画像 ${currentIndex + 1} / ${screenshots.length}`);
 		}
 	}
 
 	function closeLightbox() {
 		lightboxModal.classList.remove("active");
+		lightboxModal.setAttribute("aria-hidden", "true");
 		document.body.style.overflow = "";
+
+		// Return focus to the trigger element
+		const triggerElement = screenshots[currentIndex];
+		if (triggerElement) {
+			triggerElement.focus();
+		}
+
+		// Announce to screen readers
+		if (window.announceToScreenReader) {
+			window.announceToScreenReader("ライトボックスを閉じました");
+		}
 	}
 
 	function prevImage() {

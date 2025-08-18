@@ -5,6 +5,8 @@ title: 'PCゲーム公式サイト'
 
 params:
   description: "PCゲームの公式サイト。最新ニュース、アップデート情報、ゲーム詳細をお届けします。"
+  keywords: ["PCゲーム", "インディーゲーム", "ゲーム開発", "アクション", "アドベンチャー"]
+  default_image: "/images/placeholder.jpg"
   author:
     name: "ゲーム開発者"
     email: "developer@example.com"
